@@ -2,8 +2,8 @@
 /**
  * Class for Admin Onboarding
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -30,6 +30,9 @@ class PUM_Admin_Onboarding {
 		add_action( 'admin_enqueue_scripts', [ __CLASS__, 'set_up_pointers' ] );
 
 		add_action( 'admin_init', [ __CLASS__, 'welcome_redirect' ] );
+
+		// Ignoring nonce because value is not used outside direct string comparison.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( ! empty( $_GET['page'] ) && 'pum-welcome' === $_GET['page'] ) {
 			add_action( 'admin_menu', [ __CLASS__, 'set_up_welcome_page' ] );
 		}
@@ -129,7 +132,7 @@ class PUM_Admin_Onboarding {
 			}
 
 			// Skip if pointer has already been dismissed.
-			if ( in_array( $pointer_id, $dismissed ) ) {
+			if ( in_array( $pointer_id, $dismissed, true ) ) {
 				continue;
 			}
 
@@ -146,7 +149,7 @@ class PUM_Admin_Onboarding {
 		wp_enqueue_style( 'wp-pointer' );
 
 		// Add pointers script to queue. Add custom script.
-		wp_enqueue_script( 'pum-pointer', Popup_Maker::$URL . 'assets/js/admin-pointer.js', [ 'wp-pointer' ], Popup_Maker::$VER, true );
+		wp_enqueue_script( 'pum-pointer', Popup_Maker::$URL . 'dist/assets/admin-pointer.js', [ 'wp-pointer' ], Popup_Maker::$VER, true );
 
 		// Add pointer options to script.
 		wp_localize_script( 'pum-pointer', 'pumPointers', $valid_pointers );
@@ -164,7 +167,9 @@ class PUM_Admin_Onboarding {
 			$screen = get_current_screen();
 		}
 		$screen_id = $screen->id;
-		$pointers  = apply_filters( 'pum_admin_pointers-' . $screen_id, [] );
+		// Ignoring because this filter has been here for a long time.
+		// phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		$pointers = apply_filters( 'pum_admin_pointers-' . $screen_id, [] );
 
 		if ( ! $pointers || ! is_array( $pointers ) ) {
 			return [];
@@ -361,18 +366,24 @@ class PUM_Admin_Onboarding {
 				'link' => admin_url( 'edit.php?post_type=popup&page=pum-settings&tab=pum-settings_misc' ),
 			],
 			[
-				'msg'  => "Want to use the block editor to create your popups? Enable it over on Popup Maker's settings page.",
-				'link' => admin_url( 'edit.php?post_type=popup&page=pum-settings' ),
-			],
-			[
-				'msg'  => 'Using the Popup Maker menu in your admin bar, you can open and close popups, check conditions, reseet cookies, and more!',
-				'link' => 'https://docs.wppopupmaker.com/article/300-the-popup-maker-admin-toolbar',
+				'msg'  => 'Using the Popup Maker menu in your admin bar, you can open and close popups, check conditions, reset cookies, and more!',
+				'link' => 'https://wppopupmaker.com/docs/problem-solving/turning-on-the-popups-admin-bar/',
 			],
 			[
 				'msg'  => "Did you know: You can easily customize your site's navigation to have a link open a popup by using the 'Trigger a Popup' option when editing your menus?",
-				'link' => 'https://docs.wppopupmaker.com/article/51-open-a-popup-from-a-wordpress-nav-menu',
+				'link' => 'https://wppopupmaker.com/docs/menu/open-a-popup-from-a-wordpress-nav-menu/',
 			],
 		];
+
+		if (
+			'enabled' !== get_option( 'pum_gutenberg_legacy_choice', 'new_user' ) &&
+			! pum_get_option( 'enable_classic_editor', false )
+		) {
+			$tips[] = [
+				'msg'  => "Prefer the classic editor? You can disable the block editor and use the classic editor for popups in Popup Maker's settings page.",
+				'link' => admin_url( 'edit.php?post_type=popup&page=pum-settings' ),
+			];
+		}
 
 		if ( 7 < pum_count_popups() ) {
 			$tips[] = [
@@ -393,17 +404,21 @@ class PUM_Admin_Onboarding {
 	public static function welcome_redirect() {
 		// Redirect idea from Better Click To Tweet's welcome screen. Thanks Ben!
 		if ( get_transient( 'pum_activation_redirect' ) ) {
-			$do_redirect  = true;
+			$do_redirect = true;
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$current_page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : false;
 			// Bailout redirect during these events.
 			if ( wp_doing_ajax() || is_network_admin() || ! current_user_can( 'manage_options' ) ) {
 				$do_redirect = false;
 			}
+
 			// Bailout redirect on these pages & events.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			if ( 'pum-welcome' === $current_page || isset( $_GET['activate-multi'] ) ) {
 				delete_transient( 'pum_activation_redirect' );
 				$do_redirect = false;
 			}
+
 			if ( $do_redirect ) {
 				delete_transient( 'pum_activation_redirect' );
 				update_option( 'pum_seen_welcome', 1 );

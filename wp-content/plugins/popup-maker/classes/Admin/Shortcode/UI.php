@@ -2,8 +2,8 @@
 /**
  * Admin Shortcode UI Handler
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -67,7 +67,7 @@ class PUM_Admin_Shortcode_UI {
 		add_filter( 'mce_external_plugins', [ __CLASS__, 'mce_external_plugins' ] );
 
 		// Add core site styles for form previews.
-		add_editor_style( Popup_Maker::$URL . 'assets/css/pum-site.min.css' );
+		add_editor_style( Popup_Maker::$URL . 'dist/assets/site.css' );
 
 		// Process live previews.
 		add_action( 'wp_ajax_pum_do_shortcode', [ __CLASS__, 'do_shortcode' ] );
@@ -100,7 +100,7 @@ class PUM_Admin_Shortcode_UI {
 	 */
 	public static function enqueue_scripts() {
 		// Register editor styles.
-		add_editor_style( PUM_Admin_Assets::$css_url . 'pum-admin-editor-styles' . PUM_Admin_Assets::$suffix . '.css' );
+		add_editor_style( PUM_Admin_Assets::$css_url . 'admin-editor-styles.css' );
 
 		wp_enqueue_style( 'pum-admin-shortcode-ui' );
 		wp_enqueue_script( 'pum-admin-shortcode-ui' );
@@ -134,13 +134,12 @@ class PUM_Admin_Shortcode_UI {
 		$shortcodes = [];
 
 		foreach ( PUM_Shortcodes::instance()->get_shortcodes() as $tag => $shortcode ) {
-
 			$post_types = apply_filters( 'pum_shortcode_post_types', $shortcode->post_types(), $shortcode );
 
 			/**
 			 * @var $shortcode PUM_Shortcode
 			 */
-			if ( ! in_array( '*', $post_types ) && ! in_array( $type, $post_types ) ) {
+			if ( ! in_array( '*', $post_types, true ) && ! in_array( $type, $post_types, true ) ) {
 				continue;
 			}
 
@@ -167,10 +166,14 @@ class PUM_Admin_Shortcode_UI {
 	 * @return array
 	 */
 	public static function mce_external_plugins( $plugin_array ) {
+		if ( ! is_array( $plugin_array ) ) {
+			$plugin_array = [];
+		}
+
 		return array_merge(
 			$plugin_array,
 			[
-				'pum_shortcodes' => add_query_arg( [ 'version' => Popup_Maker::$VER ], PUM_Admin_Assets::$js_url . 'mce-buttons' . PUM_Admin_Assets::$suffix . '.js' ),
+				'pum_shortcodes' => add_query_arg( [ 'version' => Popup_Maker::$VER ], PUM_Admin_Assets::$js_url . 'mce-buttons.js' ),
 			]
 		);
 	}
@@ -180,7 +183,7 @@ class PUM_Admin_Shortcode_UI {
 		check_ajax_referer( 'pum-shortcode-ui-nonce', 'nonce' );
 
 		$tag       = ! empty( $_REQUEST['tag'] ) ? sanitize_key( $_REQUEST['tag'] ) : false;
-		$shortcode = ! empty( $_REQUEST['shortcode'] ) ? stripslashes( sanitize_text_field( $_REQUEST['shortcode'] ) ) : null;
+		$shortcode = ! empty( $_REQUEST['shortcode'] ) ? stripslashes( sanitize_text_field( wp_unslash( $_REQUEST['shortcode'] ) ) ) : null;
 		$post_id   = isset( $_REQUEST['post_id'] ) ? intval( $_REQUEST['post_id'] ) : null;
 
 		if ( ! current_user_can( 'edit_post', $post_id ) ) {
@@ -199,6 +202,7 @@ class PUM_Admin_Shortcode_UI {
 		 */
 		if ( ! empty( $post_id ) ) {
 			global $post;
+			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			$post = get_post( $post_id );
 			setup_postdata( $post );
 		}
@@ -216,5 +220,4 @@ class PUM_Admin_Shortcode_UI {
 
 		wp_send_json_success( $styles . $content );
 	}
-
 }

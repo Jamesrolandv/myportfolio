@@ -2,8 +2,8 @@
 /**
  * Analytics class
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -83,12 +83,10 @@ class PUM_Analytics {
 	 * @param array $args
 	 */
 	public static function track( $args = [] ) {
+		// TODO: Remove this to support beacon for CTA conversions.
 		if ( empty( $args['pid'] ) || $args['pid'] <= 0 ) {
 			return;
 		}
-
-		// $uuid = isset( $_COOKIE['__pum'] ) ? sanitize_text_field( $_COOKIE['__pum'] ) : false;
-		// $session = $uuid && isset( $_COOKIE[ $uuid ] ) ? PUM_Utils_Array::safe_json_decode( $_COOKIE[ $uuid ] ) : false;
 
 		$event = sanitize_text_field( $args['event'] );
 
@@ -115,6 +113,7 @@ class PUM_Analytics {
 	public static function ajax_request() {
 
 		$args = wp_parse_args(
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$_REQUEST,
 			[
 				'event'  => null,
@@ -138,7 +137,6 @@ class PUM_Analytics {
 				self::serve_no_content();
 				break;
 		}
-
 	}
 
 	/**
@@ -150,7 +148,7 @@ class PUM_Analytics {
 		$args = $request->get_params();
 
 		if ( ! $args || empty( $args['pid'] ) ) {
-			return new WP_Error( 'missing_params', __( 'Missing Parameters.' ), [ 'status' => 404 ] );
+			return new WP_Error( 'missing_params', __( 'Missing Parameters.', 'default' ), [ 'status' => 404 ] );
 		}
 
 		self::track( $args );
@@ -179,7 +177,7 @@ class PUM_Analytics {
 			apply_filters(
 				'pum_analytics_rest_route_args',
 				[
-					'methods'             => 'GET',
+					'methods'             => [ 'GET', 'POST' ],
 					'callback'            => [ __CLASS__, 'analytics_endpoint' ],
 					'permission_callback' => '__return_true',
 					'args'                => [
@@ -208,7 +206,8 @@ class PUM_Analytics {
 	 * @return array The updates pum_vars
 	 */
 	public static function pum_vars( $vars = [] ) {
-		$vars['analytics_route'] = self::get_analytics_route();
+		$vars['analytics_enabled'] = self::analytics_enabled();
+		$vars['analytics_route']   = self::get_analytics_route();
 		if ( function_exists( 'rest_url' ) ) {
 			$vars['analytics_api'] = esc_url_raw( rest_url( self::get_analytics_namespace() ) );
 		} else {
@@ -277,7 +276,9 @@ class PUM_Analytics {
 		$gif = self::get_file( Popup_Maker::$DIR . 'assets/images/beacon.gif' );
 		header( 'Content-Type: image/gif' );
 		header( 'Content-Length: ' . strlen( $gif ) );
-		exit( $gif );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $gif;
+		exit;
 	}
 
 	/**
@@ -291,10 +292,12 @@ class PUM_Analytics {
 			$path = realpath( $path );
 		}
 
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		if ( ! $path || ! @is_file( $path ) ) {
 			return '';
 		}
 
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		return @file_get_contents( $path );
 	}
 
@@ -315,8 +318,8 @@ class PUM_Analytics {
 	 */
 	public static function serve_json( $data = 0 ) {
 		header( 'Content-Type: application/json' );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo PUM_Utils_Array::safe_json_encode( $data );
 		exit;
 	}
-
 }

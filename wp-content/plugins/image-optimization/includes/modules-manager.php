@@ -16,12 +16,17 @@ final class Manager {
 
 	public static function get_module_list(): array {
 		return [
-			'settings',
 			'core',
+			'connect',
 			'Oauth',
+			'connect-manager',
+			'settings',
 			'stats',
 			'optimization',
 			'backups',
+			'whats-new',
+			'Deactivation',
+			'reviews',
 		];
 	}
 

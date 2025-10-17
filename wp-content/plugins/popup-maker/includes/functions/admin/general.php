@@ -2,8 +2,8 @@
 /**
  * Functions for General Admin
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,15 +20,31 @@ function pum_typenow() {
 		return $GLOBALS['typenow'];
 	}
 
+	// Try get_current_screen() first as it's the most reliable for admin screens
+	if ( function_exists( 'get_current_screen' ) ) {
+		$screen = get_current_screen();
+		if ( ! empty( $screen->post_type ) ) {
+			return $screen->post_type;
+		}
+	}
+
+	// Ignored because these are used for current page detection only.
+	// phpcs:disable WordPress.Security.NonceVerification
+
 	// when editing pages, $typenow isn't set until later!
 	// try to pick it up from the query string
 	if ( ! empty( $_GET['post_type'] ) ) {
-		return sanitize_text_field( $_GET['post_type'] );
-	} elseif ( ! empty( $_GET['post'] ) && $_GET['post'] > 0 ) {
-		$post = get_post( $_GET['post'] );
-	} elseif ( ! empty( $_POST['post_ID'] ) && $_POST['post_ID'] > 0 ) {
-		$post = get_post( $_POST['post_ID'] );
+		return sanitize_key( wp_unslash( $_GET['post_type'] ) );
 	}
+
+	$post = null;
+	if ( ! empty( $_GET['post'] ) && absint( $_GET['post'] ) > 0 ) {
+		$post = get_post( absint( $_GET['post'] ) );
+	} elseif ( ! empty( $_POST['post_ID'] ) && absint( $_POST['post_ID'] ) > 0 ) {
+		$post = get_post( absint( $_POST['post_ID'] ) );
+	}
+
+	// phpcs:enable WordPress.Security.NonceVerification
 
 	return isset( $post ) && is_object( $post ) && $post->ID > 0 ? $post->post_type : false;
 }

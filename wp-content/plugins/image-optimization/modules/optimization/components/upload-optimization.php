@@ -8,36 +8,48 @@ use ImageOptimization\Classes\Async_Operation\{
 	Async_Operation_Queue,
 };
 use ImageOptimization\Classes\Image\{
+	Exceptions\Invalid_Image_Exception,
 	Image_Meta,
 	Image_Optimization_Error_Type,
 	Image_Status
 };
+
 use ImageOptimization\Classes\Logger;
-use ImageOptimization\Modules\Oauth\Classes\Exceptions\Quota_Exceeded_Error;
-use ImageOptimization\Modules\Oauth\Components\Connect;
+use ImageOptimization\Classes\Exceptions\Quota_Exceeded_Error;
 use ImageOptimization\Modules\Optimization\Classes\Exceptions\Image_File_Already_Exists_Error;
+use ImageOptimization\Modules\Optimization\Classes\Exceptions\Image_Validation_Error;
 use ImageOptimization\Modules\Optimization\Classes\Optimize_Image;
+use ImageOptimization\Modules\Optimization\Classes\Validate_Image;
 use ImageOptimization\Modules\Settings\Classes\Settings;
+
 use Throwable;
+use ImageOptimization\Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 class Upload_Optimization {
-	public function handle_upload( int $attachment_id ) {
+	public function handle_upload( array $metadata, int $attachment_id, string $context ) {
+		if ( 'create' !== $context ) {
+			return $metadata;
+		}
+
 		if ( ! Settings::get( Settings::OPTIMIZE_ON_UPLOAD_OPTION_NAME ) ) {
-			return;
+			return $metadata;
 		}
 
-		if ( ! Connect::is_connected() || ! Connect::is_activated() ) {
-			return;
+		// @var ImageOptimizer/Modules/ConnectManager/Module
+		$module = Plugin::instance()->modules_manager->get_modules( 'connect-manager' );
+
+		if ( ! $module->connect_instance->is_connected() || ! $module->connect_instance->is_activated() ) {
+			return $metadata;
 		}
 
-		$attachment_post = get_post( $attachment_id );
-
-		if ( ! wp_attachment_is_image( $attachment_post ) ) {
-			return;
+		try {
+			Validate_Image::is_valid( $attachment_id );
+		} catch ( Invalid_Image_Exception | Image_Validation_Error $iie ) {
+			return $metadata;
 		}
 
 		$meta = new Image_Meta( $attachment_id );
@@ -57,6 +69,8 @@ class Upload_Optimization {
 				->set_status( Image_Status::OPTIMIZATION_FAILED )
 				->save();
 		}
+
+		return $metadata;
 	}
 
 	/** @async */
@@ -89,7 +103,7 @@ class Upload_Optimization {
 	}
 
 	public function __construct() {
-		add_action( 'add_attachment', [ $this, 'handle_upload' ] );
+		add_action( 'wp_generate_attachment_metadata', [ $this, 'handle_upload' ], 10, 3 );
 		add_action( Async_Operation_Hook::OPTIMIZE_ON_UPLOAD, [ $this, 'optimize_image_on_upload' ] );
 	}
 }

@@ -20,11 +20,11 @@ if( $page_views >= 1 && $reviewStatus ) { ?>
 		<div class="popup-form-content upgrade-modal rating-modal">
 			<div class="popup-content" style="position: relative;">
 				<div class="close-popup-button">
-					<a class="hide-upgrade-modal" href="javascript:;" ><span></span></a>
+					<a class="hide-upgrade-modal" href="#" ><span></span></a>
 				</div>				
 				<div class="rating-modal-steps active" id="step-1">
 					<div class="upgrade-title"><?php esc_html_e("Seems like My Sticky Bar is bringing you value  🥳", "mystickymenu"); ?></div>
-					<div class="upgrade-desc"><?php echo sprintf( esc_html__("Can you please show us some love and rate %sMy Sticky Bar%s? It'll really help us spread the word ", "mystickymenu"), '<strong>', '</strong>'); ?></div>
+					<div class="upgrade-desc"><?php echo sprintf( esc_html__("Can you please show us some love and rate %1\$sMy Sticky Bar%2\$s? It'll really help us spread the word ", "mystickymenu"), '<strong>', '</strong>'); ?></div>
 					<div class="upgrade-rating">
 						<div id="mystickymenu-rating"></div>
 						
@@ -95,11 +95,11 @@ if( $page_views >= 1 && $reviewStatus ) { ?>
 		width: 560px;
 	}
 	.rating-modal.popup-form-content {
-		 background: #ffffff url("<?php echo MYSTICKYMENU_URL. 'images/rating-top.png'?>") top left no-repeat;
+		 background: #ffffff url("<?php echo esc_url(MYSTICKYMENU_URL. 'images/rating-top.png');?>") top left no-repeat;
 	}
 	.rating-modal.popup-form-content:after {
 		content: "";		
-		background: transparent url("<?php echo MYSTICKYMENU_URL. 'images/rating-bottom.png'?>") bottom right no-repeat;
+		background: transparent url("<?php echo esc_url(MYSTICKYMENU_URL. 'images/rating-bottom.png');?>") bottom right no-repeat;
 		width: 100%;
 		display: block;
 		height: 100%;

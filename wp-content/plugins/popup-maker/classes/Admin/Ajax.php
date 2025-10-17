@@ -2,14 +2,14 @@
 /**
  * Class for Admin Ajax
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
+// Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 
 /**
  * Handles some of our AJAX requests including post/taxonomy search from conditions
@@ -32,6 +32,11 @@ class PUM_Admin_Ajax {
 	 * @since 1.12.0
 	 */
 	public static function save_popup_enabled_state() {
+		// Verify the nonce.
+		if ( ! isset( $_REQUEST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['nonce'] ) ), 'pum_save_enabled_state' ) ) {
+			wp_send_json_error();
+		}
+
 		$args = wp_parse_args(
 			$_REQUEST,
 			[
@@ -50,11 +55,6 @@ class PUM_Admin_Ajax {
 		$enabled = intval( $args['enabled'] );
 		if ( ! in_array( $enabled, [ 0, 1 ], true ) ) {
 			wp_send_json_error( 'Invalid enabled state provided.' );
-		}
-
-		// Verify the nonce.
-		if ( ! wp_verify_nonce( $_REQUEST['nonce'], "pum_save_enabled_state_$popup_id" ) ) {
-			wp_send_json_error();
 		}
 
 		// Dissallow if user cannot edit this popup.
@@ -97,154 +97,185 @@ class PUM_Admin_Ajax {
 			'total_count' => 0,
 		];
 
-		$object_type = sanitize_text_field( $_REQUEST['object_type'] );
-		$include     = ! empty( $_REQUEST['include'] ) ? wp_parse_id_list( $_REQUEST['include'] ) : [];
-		$exclude     = ! empty( $_REQUEST['exclude'] ) ? wp_parse_id_list( $_REQUEST['exclude'] ) : [];
+		$object_type = isset( $_REQUEST['object_type'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['object_type'] ) ) : '';
+		$include     = isset( $_REQUEST['include'] ) ? wp_parse_id_list( wp_unslash( $_REQUEST['include'] ) ) : [];
+		$exclude     = isset( $_REQUEST['exclude'] ) ? wp_parse_id_list( wp_unslash( $_REQUEST['exclude'] ) ) : [];
 
 		if ( ! empty( $include ) ) {
 			$exclude = array_merge( $include, $exclude );
 		}
 
-		switch ( $object_type ) {
-			case 'post_type':
-				$post_type = ! empty( $_REQUEST['object_key'] ) ? sanitize_text_field( $_REQUEST['object_key'] ) : 'post';
+		/**
+		 * Filter object search results for unknown or custom object types.
+		 *
+		 * Allows plugins to handle custom object types that aren't natively supported.
+		 *
+		 * @param array{items:array,total_count:int}|null  $results     Current search results with 'items' and 'total_count'.
+		 * @param string $object_type The object type being searched.
+		 * @param array  $request     The full request parameters.
+		 *
+		 * @return array{items:array,total_count:int}|null $results
+		 */
+		$pre_results = apply_filters( 'popup_maker/pre_object_search', null, $object_type, $_REQUEST );
 
-				if ( ! empty( $include ) ) {
-					$include_query = PUM_Helpers::post_type_selectlist_query(
+		// If early results are returned, skip the rest of the logic.
+		if ( null !== $pre_results ) {
+			$results = $pre_results;
+		} else {
+			switch ( $object_type ) {
+				case 'post_type':
+					$post_type = ! empty( $_REQUEST['object_key'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['object_key'] ) ) : 'post';
+
+					if ( ! empty( $include ) ) {
+						$include_query = PUM_Helpers::post_type_selectlist_query(
+							$post_type,
+							[
+								'post__in'       => $include,
+								'posts_per_page' => - 1,
+							],
+							true
+						);
+
+						foreach ( $include_query['items'] as $id => $name ) {
+							$results['items'][] = [
+								'id'   => $id,
+								'text' => "$name (ID: $id)",
+							];
+						}
+
+						$results['total_count'] += (int) $include_query['total_count'];
+					}
+
+					$query = PUM_Helpers::post_type_selectlist_query(
 						$post_type,
 						[
-							'post__in'       => $include,
-							'posts_per_page' => - 1,
+							's'              => ! empty( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : null,
+							'paged'          => ! empty( $_REQUEST['paged'] ) ? absint( wp_unslash( $_REQUEST['paged'] ) ) : null,
+							'post__not_in'   => $exclude,
+							'posts_per_page' => 10,
 						],
 						true
 					);
 
-					foreach ( $include_query['items'] as $id => $name ) {
+					foreach ( $query['items'] as $id => $name ) {
 						$results['items'][] = [
 							'id'   => $id,
 							'text' => "$name (ID: $id)",
 						];
 					}
 
-					$results['total_count'] += (int) $include_query['total_count'];
-				}
+					$results['total_count'] += (int) $query['total_count'];
+					break;
 
-				$query = PUM_Helpers::post_type_selectlist_query(
-					$post_type,
-					[
-						's'              => ! empty( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : null,
-						'paged'          => ! empty( $_REQUEST['paged'] ) ? absint( $_REQUEST['paged'] ) : null,
-						'post__not_in'   => $exclude,
-						'posts_per_page' => 10,
-					],
-					true
-				);
+				case 'taxonomy':
+					$taxonomy = ! empty( $_REQUEST['object_key'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['object_key'] ) ) : 'category';
 
-				foreach ( $query['items'] as $id => $name ) {
-					$results['items'][] = [
-						'id'   => $id,
-						'text' => "$name (ID: $id)",
-					];
-				}
+					if ( ! empty( $include ) ) {
+						$include_query = PUM_Helpers::taxonomy_selectlist_query(
+							$taxonomy,
+							[
+								'include' => $include,
+								'number'  => 0,
+							],
+							true
+						);
 
-				$results['total_count'] += (int) $query['total_count'];
-				break;
+						foreach ( $include_query['items'] as $id => $name ) {
+							$results['items'][] = [
+								'id'   => $id,
+								'text' => "$name (ID: $id)",
+							];
+						}
 
-			case 'taxonomy':
-				$taxonomy = ! empty( $_REQUEST['object_key'] ) ? sanitize_text_field( $_REQUEST['object_key'] ) : 'category';
+						$results['total_count'] += (int) $include_query['total_count'];
+					}
 
-				if ( ! empty( $include ) ) {
-					$include_query = PUM_Helpers::taxonomy_selectlist_query(
+					$query = PUM_Helpers::taxonomy_selectlist_query(
 						$taxonomy,
 						[
-							'include' => $include,
-							'number'  => 0,
+							'search'  => ! empty( $_REQUEST['s'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['s'] ) ) : null,
+							'paged'   => ! empty( $_REQUEST['paged'] ) ? absint( wp_unslash( $_REQUEST['paged'] ) ) : null,
+							'exclude' => $exclude,
+							'number'  => 10,
 						],
 						true
 					);
 
-					foreach ( $include_query['items'] as $id => $name ) {
+					foreach ( $query['items'] as $id => $name ) {
 						$results['items'][] = [
 							'id'   => $id,
 							'text' => "$name (ID: $id)",
 						];
 					}
 
-					$results['total_count'] += (int) $include_query['total_count'];
-				}
+					$results['total_count'] += (int) $query['total_count'];
+					break;
+				case 'user':
+					if ( ! current_user_can( 'list_users' ) ) {
+						wp_send_json_error();
+					}
 
-				$query = PUM_Helpers::taxonomy_selectlist_query(
-					$taxonomy,
-					[
-						'search'  => ! empty( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : null,
-						'paged'   => ! empty( $_REQUEST['paged'] ) ? absint( $_REQUEST['paged'] ) : null,
-						'exclude' => $exclude,
-						'number'  => 10,
-					],
-					true
-				);
+					$user_role = ! empty( $_REQUEST['object_key'] ) ? sanitize_key( wp_unslash( $_REQUEST['object_key'] ) ) : null;
 
-				foreach ( $query['items'] as $id => $name ) {
-					$results['items'][] = [
-						'id'   => $id,
-						'text' => "$name (ID: $id)",
-					];
-				}
+					if ( ! empty( $include ) ) {
+						$include_query = PUM_Helpers::user_selectlist_query(
+							[
+								'role'    => $user_role,
+								'include' => $include,
+								'number'  => - 1,
+							],
+							true
+						);
 
-				$results['total_count'] += (int) $query['total_count'];
-				break;
-			case 'user':
-				if ( ! current_user_can( 'list_users' ) ) {
-					wp_send_json_error();
-				}
+						foreach ( $include_query['items'] as $id => $name ) {
+							$results['items'][] = [
+								'id'   => $id,
+								'text' => "$name (ID: $id)",
+							];
+						}
 
-				$user_role = ! empty( $_REQUEST['object_key'] ) ? $_REQUEST['object_key'] : null;
+						$results['total_count'] += (int) $include_query['total_count'];
+					}
 
-				if ( ! empty( $include ) ) {
-					$include_query = PUM_Helpers::user_selectlist_query(
+					$query = PUM_Helpers::user_selectlist_query(
 						[
 							'role'    => $user_role,
-							'include' => $include,
-							'number'  => - 1,
+							'search'  => ! empty( $_REQUEST['s'] ) ? '*' . sanitize_key( wp_unslash( $_REQUEST['s'] ) ) . '*' : null,
+							'paged'   => ! empty( $_REQUEST['paged'] ) ? absint( wp_unslash( $_REQUEST['paged'] ) ) : null,
+							'exclude' => $exclude,
+							'number'  => 10,
 						],
 						true
 					);
 
-					foreach ( $include_query['items'] as $id => $name ) {
+					foreach ( $query['items'] as $id => $name ) {
 						$results['items'][] = [
 							'id'   => $id,
 							'text' => "$name (ID: $id)",
 						];
 					}
 
-					$results['total_count'] += (int) $include_query['total_count'];
-				}
-
-				$query = PUM_Helpers::user_selectlist_query(
-					[
-						'role'    => $user_role,
-						'search'  => ! empty( $_REQUEST['s'] ) ? '*' . $_REQUEST['s'] . '*' : null,
-						'paged'   => ! empty( $_REQUEST['paged'] ) ? absint( $_REQUEST['paged'] ) : null,
-						'exclude' => $exclude,
-						'number'  => 10,
-					],
-					true
-				);
-
-				foreach ( $query['items'] as $id => $name ) {
-					$results['items'][] = [
-						'id'   => $id,
-						'text' => "$name (ID: $id)",
-					];
-				}
-
-				$results['total_count'] += (int) $query['total_count'];
-				break;
+					$results['total_count'] += (int) $query['total_count'];
+					break;
+			}
 		}
+
+		/**
+		 * Filter object search results for unknown or custom object types.
+		 *
+		 * Allows plugins to handle custom object types that aren't natively supported.
+		 *
+		 * @param array  $results     Current search results with 'items' and 'total_count'.
+		 * @param string $object_type The object type being searched.
+		 * @param array  $request     The full request parameters.
+		 */
+		$results = apply_filters( 'popup_maker/object_search', $results, $object_type, $_REQUEST );
 
 		// Take out keys which were only used to deduplicate.
 		$results['items'] = array_values( $results['items'] );
 
+		// Ignoring this as it is a JSON response and all sanitization methods break it.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo PUM_Utils_Array::safe_json_encode( $results );
 		die();
 	}
@@ -266,7 +297,7 @@ class PUM_Admin_Ajax {
 		}
 
 		// Nonce.
-		if ( ! isset( $_REQUEST['nonce'] ) || ( isset( $_REQUEST['nonce'] ) && false === wp_verify_nonce( $_REQUEST['nonce'], "{$batch_id}_step_nonce" ) ) ) {
+		if ( ! isset( $_REQUEST['nonce'] ) || ( isset( $_REQUEST['nonce'] ) && false === wp_verify_nonce( sanitize_key( wp_unslash( $_REQUEST['nonce'] ) ), "{$batch_id}_step_nonce" ) ) ) {
 			wp_send_json_error(
 				[
 					'error' => __( 'You do not have permission to initiate this request. Contact an administrator for more information.', 'popup-maker' ),
@@ -280,7 +311,11 @@ class PUM_Admin_Ajax {
 		if ( false === $batch ) {
 			wp_send_json_error(
 				[
-					'error' => sprintf( __( '%s is an invalid batch process ID.', 'popup-maker' ), esc_html( $_REQUEST['batch_id'] ) ),
+					'error' => sprintf(
+						/* translators: %s is the batch ID. */
+						__( '%s is an invalid batch process ID.', 'popup-maker' ),
+						esc_html( sanitize_key( wp_unslash( $_REQUEST['batch_id'] ) ) )
+					),
 				]
 			);
 		}
@@ -291,7 +326,11 @@ class PUM_Admin_Ajax {
 		if ( empty( $class_file ) || ! file_exists( $class_file ) ) {
 			wp_send_json_error(
 				[
-					'error' => sprintf( __( 'An invalid file path is registered for the %1$s batch process handler.', 'popup-maker' ), "<code>{$batch_id}</code>" ),
+					'error' => sprintf(
+						/* translators: %s is the batch ID. */
+						__( 'An invalid file path is registered for the %1$s batch process handler.', 'popup-maker' ),
+						"<code>{$batch_id}</code>"
+					),
 				]
 			);
 		} else {
@@ -301,12 +340,17 @@ class PUM_Admin_Ajax {
 		if ( empty( $class ) || ! class_exists( $class ) ) {
 			wp_send_json_error(
 				[
-					'error' => sprintf( __( '%1$s is an invalid handler for the %2$s batch process. Please try again.', 'popup-maker' ), "<code>{$class}</code>", "<code>{$batch_id}</code>" ),
+					'error' => sprintf(
+						/* translators: %1$s is the batch ID, %2$s is the batch handler class. */
+						__( '%1$s is an invalid handler for the %2$s batch process. Please try again.', 'popup-maker' ),
+						"<code>{$class}</code>",
+						"<code>{$batch_id}</code>"
+					),
 				]
 			);
 		}
 
-		$step = sanitize_text_field( $_REQUEST['step'] );
+		$step = isset( $_REQUEST['step'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['step'] ) ) : 1;
 
 		/**
 		 * Instantiate the batch class.
@@ -316,14 +360,12 @@ class PUM_Admin_Ajax {
 		if ( isset( $_REQUEST['data']['upload']['file'] ) ) {
 
 			// If this is an import, instantiate with the file and step.
-			$file    = sanitize_text_field( $_REQUEST['data']['upload']['file'] );
+			$file    = sanitize_text_field( wp_unslash( $_REQUEST['data']['upload']['file'] ) );
 			$process = new $class( $file, $step );
-
 		} else {
 
 			// Otherwise just the step.
 			$process = new $class( $step );
-
 		}
 
 		// Garbage collect any old temporary data.
@@ -336,8 +378,9 @@ class PUM_Admin_Ajax {
 
 		// Handle pre-fetching data.
 		if ( $using_prefetch ) {
-			// Initialize any data needed to process a step.
-			$data = isset( $_REQUEST['form'] ) ? $_REQUEST['form'] : [];
+			// Initialize any data needed to process a step. No real way to sanitize this unknown data here, rather should be done in each update class.
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$data = isset( $_REQUEST['form'] ) ? wp_unslash( $_REQUEST['form'] ) : [];
 
 			$process->init( $data );
 			$process->pre_fetch();
@@ -364,18 +407,15 @@ class PUM_Admin_Ajax {
 
 				// If this is an export class and not an empty export, send the download URL.
 				if ( method_exists( $process, 'can_export' ) ) {
-
-					if ( ! $process->is_empty ) {
-						$response_data['url'] = pum_admin_url(
-							'tools',
-							[
-								'step'       => $step,
-								'nonce'      => wp_create_nonce( 'pum-batch-export' ),
-								'batch_id'   => $batch_id,
-								'pum_action' => 'download_batch_export',
-							]
-						);
-					}
+					$response_data['url'] = pum_admin_url(
+						'tools',
+						[
+							'step'       => $step,
+							'nonce'      => wp_create_nonce( 'pum-batch-export' ),
+							'batch_id'   => $batch_id,
+							'pum_action' => 'download_batch_export',
+						]
+					);
 				}
 
 				// Once all calculations have finished, run cleanup.
@@ -387,7 +427,5 @@ class PUM_Admin_Ajax {
 
 			wp_send_json_success( $response_data );
 		}
-
 	}
-
 }

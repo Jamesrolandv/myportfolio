@@ -2,9 +2,11 @@
 /**
  * Class for Admin Popups
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
+
+use function PopupMaker\progress_bar;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -26,7 +28,7 @@ class PUM_Admin_Popups {
 		add_action( 'edit_form_top', [ __CLASS__, 'add_popup_id' ] );
 
 		// Change title to popup name.
-		add_filter( 'enter_title_here', [ __CLASS__, '_default_title' ] );
+		add_filter( 'enter_title_here', [ __CLASS__, 'default_title' ] );
 
 		// Add popup title field.
 		add_action( 'edit_form_advanced', [ __CLASS__, 'title_meta_field' ] );
@@ -50,16 +52,19 @@ class PUM_Admin_Popups {
 		add_filter( 'default_hidden_columns', [ __CLASS__, 'hide_columns' ], 10, 2 );
 		add_action( 'load-edit.php', [ __CLASS__, 'load' ], 9999 );
 		add_action( 'restrict_manage_posts', [ __CLASS__, 'add_popup_filters' ], 100 );
-		add_filter( 'post_row_actions', [ __CLASS__, 'add_id_row_actions' ], 2, 100 );
+		add_filter( 'post_row_actions', [ __CLASS__, 'add_id_row_actions' ], 100, 2 );
 
 		add_action( 'post_submitbox_misc_actions', [ __CLASS__, 'add_enabled_toggle_editor' ], 10, 1 );
+
+		add_filter( 'mce_buttons_2', [ __CLASS__, 'add_mce_buttons' ], 10, 1 );
+		add_filter( 'tiny_mce_before_init', [ __CLASS__, 'increase_available_font_sizes' ], 10, 1 );
 	}
 
 	/**
 	 * Adds our enabled state toggle to the "Publish" meta box.
 	 *
 	 * @since 1.12
-	 * @param WP_POST $post The current post (i.e. the popup).
+	 * @param WP_Post $post The current post (i.e. the popup).
 	 */
 	public static function add_enabled_toggle_editor( $post ) {
 		if ( 'publish' !== $post->post_status || 'popup' !== $post->post_type ) {
@@ -67,7 +72,7 @@ class PUM_Admin_Popups {
 		}
 		$popup   = pum_get_popup( $post->ID );
 		$enabled = $popup->is_enabled();
-		$nonce   = wp_create_nonce( "pum_save_enabled_state_{$popup->ID}" );
+		$nonce   = wp_create_nonce( 'pum_save_enabled_state' );
 		?>
 		<div class="misc-pub-section" style="display:flex;">
 			<span style="font-weight: bold; margin-right: 10px;">Popup Enabled </span>
@@ -100,7 +105,7 @@ class PUM_Admin_Popups {
 	 * @param string $title Default title placeholder text.
 	 * @return string $title New placeholder text
 	 */
-	public static function _default_title( $title ) {
+	public static function default_title( $title ) {
 
 		if ( ! is_admin() ) {
 			return $title;
@@ -126,7 +131,11 @@ class PUM_Admin_Popups {
 	public static function title_meta_field() {
 		global $post, $pagenow, $typenow;
 
-		if ( has_blocks( $post ) || ( function_exists( 'use_block_editor_for_post' ) && use_block_editor_for_post( $post ) ) ) {
+		if ( ( function_exists( 'has_blocks' ) && has_blocks( $post ) ) || ( function_exists( 'use_block_editor_for_post' ) && use_block_editor_for_post( $post ) ) ) {
+			// Add hidden field to preserve popup title in block editor.
+			if ( 'popup' === $typenow && in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) ) {
+				echo '<input type="hidden" name="popup_title" value="' . esc_attr( get_post_meta( $post->ID, 'popup_title', true ) ) . '" />';
+			}
 			return;
 		}
 
@@ -134,7 +143,7 @@ class PUM_Admin_Popups {
 			return;
 		}
 
-		if ( 'popup' === $typenow && in_array( $pagenow, [ 'post-new.php', 'post.php' ] ) ) {
+		if ( 'popup' === $typenow && in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) ) {
 			?>
 
 			<div id="popup-titlediv" class="pum-form">
@@ -142,7 +151,7 @@ class PUM_Admin_Popups {
 					<label class="screen-reader-text" id="popup-title-prompt-text" for="popup-title">
 						<?php esc_html_e( 'Popup Title', 'popup-maker' ); ?>
 					</label>
-					<input tabindex="2" name="popup_title" size="30" value="<?php echo esc_attr( get_post_meta( $post->ID, 'popup_title', true ) ); ?>" id="popup-title" autocomplete="off" placeholder="<?php esc_html_e( 'Popup Title', 'popup-maker' ); ?>" />
+					<input tabindex="2" name="popup_title" size="30" value="<?php echo esc_attr( get_post_meta( $post->ID, 'popup_title', true ) ); ?>" id="popup-title" autocomplete="off" placeholder="<?php esc_attr_e( 'Popup Title', 'popup-maker' ); ?>" />
 					<p class="pum-desc"><?php echo '(' . esc_html__( 'Optional', 'popup-maker' ) . ') ' . esc_html__( 'Shown as headline inside the popup. Can be left blank.', 'popup-maker' ); ?></p>
 				</div>
 				<div class="inside"></div>
@@ -158,7 +167,7 @@ class PUM_Admin_Popups {
 	public static function popup_post_title_contextual_message() {
 		global $post, $pagenow, $typenow;
 
-		if ( has_blocks( $post ) || ( function_exists( 'use_block_editor_for_post' ) && use_block_editor_for_post( $post ) ) ) {
+		if ( ( function_exists( 'has_blocks' ) && has_blocks( $post ) ) || ( function_exists( 'use_block_editor_for_post' ) && use_block_editor_for_post( $post ) ) ) {
 			return;
 		}
 
@@ -166,7 +175,7 @@ class PUM_Admin_Popups {
 			return;
 		}
 
-		if ( 'popup' === $typenow && in_array( $pagenow, [ 'post-new.php', 'post.php' ] ) ) {
+		if ( 'popup' === $typenow && in_array( $pagenow, [ 'post-new.php', 'post.php' ], true ) ) {
 			?>
 			<p class="pum-desc"><?php echo '(' . esc_html__( 'Required', 'popup-maker' ) . ') ' . esc_html__( 'Enter a name to help you remember what this popup is about. Only you will see this.', 'popup-maker' ); ?></p>
 			<?php
@@ -186,6 +195,8 @@ class PUM_Admin_Popups {
 	 *
 	 * @param array $values Array of settings.
 	 * @return array
+	 *
+	 * @deprecated 1.20.0 - Explicitly use ::defaults() and/or ::fill_missing_defaults() instead.
 	 */
 	public static function parse_values( $values = [] ) {
 		$defaults = self::defaults();
@@ -208,7 +219,12 @@ class PUM_Admin_Popups {
 		$popup = pum_get_popup( $post->ID );
 
 		// Get the meta directly rather than from cached object.
-		$settings = self::parse_values( $popup->get_settings() );
+		$settings = $popup->get_meta( 'popup_settings' );
+
+		// If this is a new popup, use the defaults.
+		if ( '' === $settings ) {
+			$settings = self::defaults(); // Fallback to defaults as this is likely a new popup.
+		}
 
 		wp_nonce_field( basename( __FILE__ ), 'pum_popup_settings_nonce' );
 		wp_enqueue_script( 'popup-maker-admin' );
@@ -216,6 +232,8 @@ class PUM_Admin_Popups {
 		<script type="text/javascript">
 			window.pum_popup_settings_editor =
 			<?php
+			// Ignored as this is a JSON string.
+			// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 			echo PUM_Utils_Array::safe_json_encode(
 				apply_filters(
 					'pum_popup_settings_editor_var',
@@ -235,13 +253,24 @@ class PUM_Admin_Popups {
 					]
 				)
 			);
+			// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+
 			?>
 			;
 		</script>
 
 		<div id="pum-popup-settings-container" class="pum-popup-settings-container">
 			<div class="pum-no-js" style="padding: 0 12px;">
-				<p><?php printf( esc_html__( 'If you are seeing this, the page is still loading or there are Javascript errors on this page. %1$sView troubleshooting guide%2$s', 'popup-maker' ), '<a href="https://docs.wppopupmaker.com/article/373-checking-for-javascript-errors" target="_blank">', '</a>' ); ?></p>
+				<p>
+				<?php
+					printf(
+					/* translators: 1. URL to view troubleshooting guide. 2. Closing HTML tag. */
+						esc_html__( 'If you are seeing this, the page is still loading or there are Javascript errors on this page. %1$sView troubleshooting guide%2$s', 'popup-maker' ),
+						'<a href="https://wppopupmaker.com/docs/problem-solving/checking-javascript-errors/" target="_blank">',
+						'</a>'
+					);
+				?>
+				</p>
 			</div>
 		</div>
 		<?php
@@ -286,7 +315,7 @@ class PUM_Admin_Popups {
 			return;
 		}
 
-		if ( ! isset( $_POST['pum_popup_settings_nonce'] ) || ! wp_verify_nonce( $_POST['pum_popup_settings_nonce'], basename( __FILE__ ) ) ) {
+		if ( ! isset( $_POST['pum_popup_settings_nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['pum_popup_settings_nonce'] ) ), basename( __FILE__ ) ) ) {
 			return;
 		}
 
@@ -311,9 +340,14 @@ class PUM_Admin_Popups {
 			$popup->reset_counts();
 		}
 
-		$title = ! empty( $_POST['popup_title'] ) ? trim( sanitize_text_field( $_POST['popup_title'] ) ) : '';
-		$popup->update_meta( 'popup_title', $title );
+		// Only update the popup title if the field was submitted (not present in block editor).
+		if ( isset( $_POST['popup_title'] ) ) {
+			$title = trim( sanitize_text_field( wp_unslash( $_POST['popup_title'] ) ) );
+			$popup->update_meta( 'popup_title', $title );
+		}
 
+		// Ignored because this is a dynamic array and has sanitization applid to keys before usage.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.MissingUnslash
 		$settings = ! empty( $_POST['popup_settings'] ) ? $_POST['popup_settings'] : [];
 
 		// Sanitize JSON values.
@@ -324,14 +358,15 @@ class PUM_Admin_Popups {
 		$settings = apply_filters( 'pum_popup_setting_pre_save', $settings, $post->ID );
 
 		$settings = self::sanitize_settings( $settings );
-		$settings = self::parse_values( $settings );
 
 		$popup->update_settings( $settings, false );
 
 		// TODO Remove this and all other code here. This should be clean and all code more compartmentalized.
 		foreach ( self::deprecated_meta_fields() as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
-				$new = apply_filters( 'popmake_metabox_save_' . $field, $_POST[ $field ] );
+				// Ignored because this should no longer be used, has been deprecated nd we don't know the format of each value safely to sanitize.
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$new = apply_filters( 'popmake_metabox_save_' . $field, wp_unslash( $_POST[ $field ] ) );
 				update_post_meta( $post_id, $field, $new );
 			} else {
 				delete_post_meta( $post_id, $field );
@@ -705,7 +740,11 @@ class PUM_Admin_Popups {
 								],
 								'position_top'          => [
 									'label'        => __( 'Top', 'popup-maker' ),
-									'desc'         => sprintf( _x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ), strtolower( __( 'Top', 'popup-maker' ) ) ),
+									'desc'         => sprintf(
+										/* translators: 1. Screen Edge: top, bottom. */
+										_x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ),
+										strtolower( __( 'Top', 'popup-maker' ) )
+									),
 									'type'         => 'rangeslider',
 									'std'          => 100,
 									'step'         => 1,
@@ -719,7 +758,11 @@ class PUM_Admin_Popups {
 								],
 								'position_bottom'       => [
 									'label'        => __( 'Bottom', 'popup-maker' ),
-									'desc'         => sprintf( _x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ), strtolower( __( 'Bottom', 'popup-maker' ) ) ),
+									'desc'         => sprintf(
+										/* translators: 1. Screen Edge: top, bottom. */
+										_x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ),
+										strtolower( __( 'Bottom', 'popup-maker' ) )
+									),
 									'type'         => 'rangeslider',
 									'std'          => 0,
 									'step'         => 1,
@@ -733,7 +776,11 @@ class PUM_Admin_Popups {
 								],
 								'position_left'         => [
 									'label'        => __( 'Left', 'popup-maker' ),
-									'desc'         => sprintf( _x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ), strtolower( __( 'Left', 'popup-maker' ) ) ),
+									'desc'         => sprintf(
+										/* translators: 1. Screen Edge: top, bottom. */
+										_x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ),
+										strtolower( __( 'Left', 'popup-maker' ) )
+									),
 									'type'         => 'rangeslider',
 									'std'          => 0,
 									'step'         => 1,
@@ -747,7 +794,11 @@ class PUM_Admin_Popups {
 								],
 								'position_right'        => [
 									'label'        => __( 'Right', 'popup-maker' ),
-									'desc'         => sprintf( _x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ), strtolower( __( 'Right', 'popup-maker' ) ) ),
+									'desc'         => sprintf(
+										/* translators: 1. Screen Edge: top, bottom. */
+										_x( 'Distance from the %s edge of the screen.', 'Screen Edge: top, bottom', 'popup-maker' ),
+										strtolower( __( 'Right', 'popup-maker' ) )
+									),
 									'type'         => 'rangeslider',
 									'std'          => 0,
 									'step'         => 1,
@@ -761,13 +812,18 @@ class PUM_Admin_Popups {
 								],
 								'position_from_trigger' => [
 									'label'    => __( 'Position from Trigger', 'popup-maker' ),
-									'desc'     => sprintf( __( 'This will position the popup in relation to the %1$sClick Trigger%2$s.', 'popup-maker' ), '<a target="_blank" href="https://docs.wppopupmaker.com/article/395-trigger-click-open-overview-methods?utm_campaign=contextual-help&utm_medium=inline-doclink&utm_source=plugin-popup-editor&utm_content=position-from-trigger">', '</a>' ),
+									'desc'     => sprintf(
+										/* translators: 1. URL to documentation. 2. Closing HTML tag. */
+										__( 'This will position the popup in relation to the %1$sClick Trigger%2$s.', 'popup-maker' ),
+										'<a target="_blank" href="https://wppopupmaker.com/docs/triggering-popups/trigger-click-open-overview-methods/?utm_campaign=contextual-help&utm_medium=inline-doclink&utm_source=plugin-popup-editor&utm_content=position-from-trigger">',
+										'</a>'
+									),
 									'type'     => 'checkbox',
 									'std'      => false,
 									'priority' => 40,
 								],
 								'position_fixed'        => [
-									'label'    => __( 'Fixed Postioning', 'popup-maker' ),
+									'label'    => __( 'Fixed Positioning', 'popup-maker' ),
 									'desc'     => __( 'Checking this sets the positioning of the popup to fixed.', 'popup-maker' ),
 									'type'     => 'checkbox',
 									'priority' => 50,
@@ -906,7 +962,6 @@ class PUM_Admin_Popups {
 		$tabs = self::fields();
 
 		foreach ( $tabs as $tab => $sections ) {
-
 			if ( PUM_Admin_Helpers::is_field( $sections ) ) {
 				$sections = [
 					'main' => [
@@ -916,7 +971,6 @@ class PUM_Admin_Popups {
 			}
 
 			foreach ( $sections as $section => $fields ) {
-
 				foreach ( $fields as $key => $args ) {
 					if ( $key === $id ) {
 						return $args;
@@ -1014,7 +1068,7 @@ class PUM_Admin_Popups {
 		$defaults = self::defaults();
 		foreach ( $defaults as $field_id => $default_value ) {
 			$field = self::get_field( $field_id );
-			if ( isset( $settings[ $field_id ] ) || in_array( $field['type'], $excluded_field_types ) ) {
+			if ( isset( $settings[ $field_id ] ) || in_array( $field['type'], $excluded_field_types, true ) ) {
 				continue;
 			}
 
@@ -1022,7 +1076,6 @@ class PUM_Admin_Popups {
 		}
 
 		return $settings;
-
 	}
 
 	/**
@@ -1040,9 +1093,9 @@ class PUM_Admin_Popups {
 			<?php do_action( 'pum_popup_analytics_metabox_before', $post->ID ); ?>
 
 			<?php
-			$opens           = $popup->get_event_count( 'open' );
+			$views           = $popup->get_event_count( 'open' );
 			$conversions     = $popup->get_event_count( 'conversion' );
-			$conversion_rate = $opens > 0 && $opens >= $conversions ? $conversions / $opens * 100 : 0;
+			$conversion_rate = $views > 0 && $views >= $conversions ? $conversions / $views * 100 : 0;
 			?>
 
 			<div id="pum-popup-analytics" class="pum-popup-analytics">
@@ -1051,7 +1104,7 @@ class PUM_Admin_Popups {
 					<tbody>
 					<tr>
 						<td><?php esc_html_e( 'Opens', 'popup-maker' ); ?></td>
-						<td><?php echo esc_html( $opens ); ?></td>
+						<td><?php echo esc_html( $views ); ?></td>
 					</tr>
 					<tr>
 						<td><?php esc_html_e( 'Conversions', 'popup-maker' ); ?></td>
@@ -1067,14 +1120,15 @@ class PUM_Admin_Popups {
 								<?php esc_html_e( 'Reset Counts', 'popup-maker' ); ?>
 							</label>
 							<?php
-							if ( ( $reset = $popup->get_last_count_reset() ) ) :
+							$reset = $popup->get_last_count_reset();
+							if ( $reset ) :
 								?>
 								<br />
 								<small>
-									<strong><?php esc_html_e( 'Last Reset', 'popup-maker' ); ?>:</strong> <?php echo esc_html( wp_date( 'm-d-Y H:i', $reset['timestamp'] ) ); ?>
-									<br /> <strong><?php esc_html_e( 'Previous Opens', 'popup-maker' ); ?>:</strong> <?php echo esc_html( $reset['opens'] ); ?>
+									<strong><?php esc_html_e( 'Last Reset', 'popup-maker' ); ?>:</strong> <?php echo esc_html( function_exists( 'wp_date' ) ? wp_date( 'm-d-Y H:i', $reset['timestamp'] ) : gmdate( 'm-d-Y H:i', $reset['timestamp'] ) ); ?>
+									<br /> <strong><?php esc_html_e( 'Previous Opens', 'popup-maker' ); ?>:</strong> <?php echo esc_html( $reset['views'] ?? 0 ); ?>
 
-									<?php if ( $reset['conversions'] > 0 ) : ?>
+									<?php if ( ( $reset['conversions'] ?? 0 ) > 0 ) : ?>
 										<br />
 										<strong><?php esc_html_e( 'Previous Conversions', 'popup-maker' ); ?>:</strong> <?php echo esc_html( $reset['conversions'] ); ?>
 									<?php endif; ?>
@@ -1107,9 +1161,7 @@ class PUM_Admin_Popups {
 	 */
 	public static function sanitize_meta( $meta = [] ) {
 		if ( ! empty( $meta ) ) {
-
 			foreach ( $meta as $key => $value ) {
-
 				if ( is_array( $value ) ) {
 					$meta[ $key ] = self::sanitize_meta( $value );
 				} elseif ( is_string( $value ) ) {
@@ -1119,6 +1171,7 @@ class PUM_Admin_Popups {
 							$meta[ $key ] = PUM_Admin_Helpers::object_to_array( $value );
 						}
 					} catch ( Exception $e ) {
+						$e;
 					}
 				}
 			}
@@ -1155,15 +1208,16 @@ class PUM_Admin_Popups {
 	 */
 	public static function dashboard_columns( $_columns ) {
 		wp_enqueue_style( 'pum-admin-general' );
+		wp_enqueue_style( 'popup-maker-popup-admin' );
+
 		$columns = [
-			'cb'              => '<input type="checkbox"/>',
-			'title'           => __( 'Name', 'popup-maker' ),
-			'enabled'         => __( 'Enabled', 'popup-maker' ),
-			'popup_title'     => __( 'Title', 'popup-maker' ),
-			'class'           => __( 'CSS Class', 'popup-maker' ),
-			'opens'           => __( 'Opens', 'popup-maker' ),
-			'conversions'     => __( 'Conversions', 'popup-maker' ),
-			'conversion_rate' => __( 'Conversion Rate', 'popup-maker' ),
+			'cb'          => '<input type="checkbox"/>',
+			'title'       => __( 'Name', 'popup-maker' ),
+			'enabled'     => __( 'Enabled', 'popup-maker' ),
+			'popup_title' => __( 'Title', 'popup-maker' ),
+			'class'       => __( 'CSS Class', 'popup-maker' ),
+			'views'       => __( 'Views', 'popup-maker' ),
+			'conversions' => __( 'Conversions', 'popup-maker' ),
 		];
 
 		// Add the date column preventing our own translation.
@@ -1194,7 +1248,6 @@ class PUM_Admin_Popups {
 	public static function render_columns( $column_name, $post_id ) {
 		$post = get_post( $post_id );
 		if ( 'popup' === $post->post_type ) {
-
 			$popup = pum_get_popup( $post_id );
 
 			/**
@@ -1211,7 +1264,7 @@ class PUM_Admin_Popups {
 				case 'enabled':
 					if ( 'publish' === $post->post_status ) {
 						$enabled = $popup->is_enabled();
-						$nonce   = wp_create_nonce( "pum_save_enabled_state_{$popup->ID}" );
+						$nonce   = wp_create_nonce( 'pum_save_enabled_state' );
 						?>
 						<div class="pum-toggle-button">
 							<input id="pum-enabled-toggle-<?php echo esc_attr( $popup->ID ); ?>" type="checkbox" <?php checked( true, $enabled ); ?> class="pum-enabled-toggle-button" data-nonce="<?php echo esc_attr( $nonce ); ?>" data-popup-id="<?php echo esc_attr( $popup->ID ); ?>">
@@ -1233,27 +1286,49 @@ class PUM_Admin_Popups {
 				case 'class':
 					echo '<pre style="display:inline-block;margin:0;"><code>popmake-' . absint( $post_id ) . '</code></pre>';
 					break;
-				case 'opens':
+				case 'views':
 					if ( ! pum_extension_enabled( 'popup-analytics' ) ) {
-						echo esc_html( $popup->get_event_count( 'open' ) );
+						$open_count = $popup->get_event_count( 'open' );
+						if ( ! $open_count ) {
+							$open_count = 0;
+						}
+
+						$open_count = pum_format_number( $open_count );
+
+						echo '<div class="pum-col-content">';
+						echo '<strong>' . esc_html( $open_count ) . '</strong>';
+						echo '<span>' . esc_html__( 'impressions', 'popup-maker' ) . '</span>';
+						echo '</div>';
 					}
 					break;
+
 				case 'conversions':
 					if ( ! pum_extension_enabled( 'popup-analytics' ) ) {
-						echo esc_html( $popup->get_event_count( 'conversion' ) );
-					}
-					break;
-				case 'conversion_rate':
-					if ( ! pum_extension_enabled( 'popup-analytics' ) ) {
-						$opens       = $popup->get_event_count( 'open' );
-						$conversions = $popup->get_event_count( 'conversion' );
+						$views       = (int) $popup->get_event_count( 'open' );
+						$conversions = (int) $popup->get_event_count( 'conversion' );
 
-						if ( $opens > 0 && $opens >= $conversions ) {
-							$conversion_rate = round( $conversions / $opens * 100, 2 );
+						if ( $views > 0 && $views >= $conversions ) {
+							$conversion_rate = round( $conversions / $views * 100, 2 );
 						} else {
 							$conversion_rate = 0;
 						}
-						echo esc_html( $conversion_rate . '%' );
+
+						$conversions = pum_format_number( $conversions );
+
+						echo '<div class="pum-col-content">';
+
+						// Progress bar with percentage.
+						if ( ! $conversion_rate || ! is_numeric( $conversion_rate ) ) {
+							echo '<strong>' . esc_html__( 'N/A', 'popup-maker' ) . '</strong>';
+						} else {
+							echo '<strong>' . esc_html( $conversions ) . '</strong>';
+							progress_bar( $conversion_rate, [
+								'size'  => 'small',
+								'title' => esc_html__( 'Calculated Conversion Rate', 'popup-maker' ),
+							] );
+						}
+
+						echo '</div>';
 					}
 					break;
 			}
@@ -1284,7 +1359,7 @@ class PUM_Admin_Popups {
 	 */
 	public static function sortable_columns( $columns ) {
 		$columns['popup_title'] = 'popup_title';
-		$columns['opens']       = 'opens';
+		$columns['views']       = 'views';
 		$columns['conversions'] = 'conversions';
 
 		return $columns;
@@ -1307,16 +1382,18 @@ class PUM_Admin_Popups {
 						$vars = array_merge(
 							$vars,
 							[
+								// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 								'meta_key' => 'popup_title',
 								'orderby'  => 'meta_value',
 							]
 						);
 						break;
-					case 'opens':
+					case 'views':
 						if ( ! pum_extension_enabled( 'popup-analytics' ) ) {
 							$vars = array_merge(
 								$vars,
 								[
+									// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 									'meta_key' => 'popup_open_count',
 									'orderby'  => 'meta_value_num',
 								]
@@ -1328,6 +1405,7 @@ class PUM_Admin_Popups {
 							$vars = array_merge(
 								$vars,
 								[
+									// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 									'meta_key' => 'popup_conversion_count',
 									'orderby'  => 'meta_value_num',
 								]
@@ -1358,34 +1436,48 @@ class PUM_Admin_Popups {
 
 		// Checks if the current post type is 'popup'
 		if ( 'popup' === $typenow ) {
-
 			if ( get_taxonomy( 'popup_category' ) ) {
 				$terms = get_terms( 'popup_category' );
+
 				if ( count( $terms ) > 0 ) {
+					$category = '';
+
+					if ( isset( $_GET['_wpnonce'] ) && ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), 'pum-popup-filter-nonce' ) ) {
+						$category = isset( $_GET['popup_category'] ) ? sanitize_key( wp_unslash( $_GET['popup_category'] ) ) : '';
+					}
+
 					echo "<select name='popup_category' id='popup_category' class='postform'>";
-					echo "<option value=''>" . __( 'Show all categories', 'popup-maker' ) . '</option>';
+					echo "<option value=''>" . esc_html__( 'Show all categories', 'popup-maker' ) . '</option>';
 					foreach ( $terms as $term ) {
-						$selected = isset( $_GET['popup_category'] ) && $_GET['popup_category'] === $term->slug ? 'selected="selected"' : '';
-						echo '<option value="' . esc_attr( $term->slug ) . '" ' . $selected . '>' . esc_html( $term->name ) . ' (' . $term->count . ')</option>';
+						$selected = $category === $term->slug ? 'selected="selected"' : '';
+						echo '<option value="' . esc_attr( $term->slug ) . '" ' . esc_attr( $selected ) . '>' . esc_html( $term->name ) . ' (' . esc_html( $term->count ) . ')</option>';
 					}
 					echo '</select>';
+					wp_nonce_field( 'pum-popup-filter-nonce' );
 				}
 			}
 
 			if ( get_taxonomy( 'popup_tag' ) ) {
 				$terms = get_terms( 'popup_tag' );
+
 				if ( count( $terms ) > 0 ) {
+					$tag = '';
+
+					if ( isset( $_GET['_wpnonce'] ) && ! wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), 'pum-popup-filter-nonce' ) ) {
+						$tag = isset( $_GET['popup_tag'] ) ? sanitize_key( wp_unslash( $_GET['popup_tag'] ) ) : '';
+					}
+
 					echo "<select name='popup_tag' id='popup_tag' class='postform'>";
-					echo "<option value=''>" . __( 'Show all tags', 'popup-maker' ) . '</option>';
+					echo "<option value=''>" . esc_html__( 'Show all tags', 'popup-maker' ) . '</option>';
 					foreach ( $terms as $term ) {
-						$selected = isset( $_GET['popup_tag'] ) && $_GET['popup_tag'] === $term->slug ? 'selected="selected"' : '';
-						echo '<option value="' . esc_attr( $term->slug ) . '" ' . $selected . '>' . esc_html( $term->name ) . ' (' . $term->count . ')</option>';
+						$selected = $tag === $term->slug ? 'selected="selected"' : '';
+						echo '<option value="' . esc_attr( $term->slug ) . '" ' . esc_attr( $selected ) . '>' . esc_html( $term->name ) . ' (' . esc_html( $term->count ) . ')</option>';
 					}
 					echo '</select>';
+					wp_nonce_field( 'pum-popup-filter-nonce' );
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -1405,4 +1497,33 @@ class PUM_Admin_Popups {
 		return $actions;
 	}
 
+	/**
+	 * Add font size and font select buttons to the editor.
+	 *
+	 * @param array $buttons The array of buttons.
+	 *
+	 * @return array
+	 */
+	public static function add_mce_buttons( $buttons ) {
+		if ( ! pum_is_popup_editor() ) {
+			return $buttons;
+		}
+
+		array_unshift( $buttons, 'fontselect' );
+		array_unshift( $buttons, 'fontsizeselect' );
+
+		return $buttons;
+	}
+
+	/**
+	 * Increase the available font sizes.
+	 *
+	 * @param array $init_array The TinyMCE init array.
+	 *
+	 * @return array
+	 */
+	public static function increase_available_font_sizes( $init_array ) {
+		$init_array['fontsize_formats'] = '9px 10px 12px 13px 14px 16px 18px 21px 24px 28px 32px 36px 42px 48px 54px 60px 66px 72px 80px 90px';
+		return $init_array;
+	}
 }

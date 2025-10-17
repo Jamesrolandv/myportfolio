@@ -53,6 +53,14 @@ class Data {
 	}
 
 	/**
+	 * get_client_secret
+	 * @return string
+	 */
+	public static function get_client_secret(): string {
+		return self::get_client_data()['auth_secret'] ?? '';
+	}
+
+	/**
 	 * get_connect_data
 	 *
 	 * @param bool $force
@@ -69,6 +77,7 @@ class Data {
 					'last_update'         => 0,
 					'token_type'          => 'bearer',
 					'user'                => [],
+					'version'             => 1,
 				],
 				get_option( self::CONNECT_DATA_OPTION_NAME, [] )
 			);
@@ -83,6 +92,7 @@ class Data {
 	 */
 	public static function set_connect_data( array $data = [] ): bool {
 		$data['last_update'] = time();
+		$data['version'] = 1;
 
 		update_option( self::OPTION_OWNER_USER_ID, get_current_user_id() );
 		return update_option( self::CONNECT_DATA_OPTION_NAME, $data );
@@ -156,6 +166,7 @@ class Data {
 		delete_option( self::OPTION_OWNER_USER_ID );
 		delete_option( static::CONNECT_DATA_OPTION_NAME );
 		delete_option( self::CONNECT_CLIENT_DATA_OPTION_NAME );
+		delete_transient( Connect::STATUS_CHECK_TRANSIENT );
 	}
 
 	public static function images_left(): int {

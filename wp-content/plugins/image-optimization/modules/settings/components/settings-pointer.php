@@ -13,6 +13,11 @@ class Settings_Pointer {
 	const CURRENT_POINTER_SLUG = 'image-optimizer-settings';
 
 	public function admin_print_script() {
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
 		if ( $this->is_dismissed() ) {
 			return;
 		}
@@ -39,11 +44,16 @@ class Settings_Pointer {
 		?>
 		<script>
 				const onClose = () => {
-					return wp.ajax.post( 'image_optimizer_pointer_dismissed', {
+					return jQuery.ajax( {
+						url: ajaxurl,
+						method: 'POST',
 						data: {
-							pointer: '<?php echo esc_attr( static::CURRENT_POINTER_SLUG ); ?>',
-						},
-						nonce: '<?php echo esc_attr( wp_create_nonce( 'image-optimization-pointer-dismissed' ) ); ?>',
+							action: 'image_optimizer_pointer_dismissed',
+							data: {
+								pointer: '<?php echo esc_attr( static::CURRENT_POINTER_SLUG ); ?>'
+							},
+							nonce: '<?php echo esc_attr( wp_create_nonce( 'image-optimization-pointer-dismissed' ) ); ?>'
+						}
 					} );
 				}
 

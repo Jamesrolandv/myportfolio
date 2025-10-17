@@ -26,7 +26,7 @@ define( 'DB_NAME', 'wp' );
 define( 'DB_USER', 'james' );
 
 /** Database password */
-define( 'DB_PASSWORD', 'forward09' );
+define( 'DB_PASSWORD', 'forward' );
 
 /** Database hostname */
 define( 'DB_HOST', 'localhost' );

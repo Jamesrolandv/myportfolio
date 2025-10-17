@@ -2,8 +2,8 @@
 /**
  * Telemetry class
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -66,7 +66,7 @@ class PUM_Telemetry {
 		$active_plugins = get_option( 'active_plugins', [] );
 
 		foreach ( $plugins as $key => $plugin ) {
-			if ( in_array( $plugin, $active_plugins ) ) {
+			if ( in_array( $plugin, $active_plugins, true ) ) {
 				// Remove active plugins from list so we can show active and inactive separately.
 				unset( $plugins[ $key ] );
 			}
@@ -93,7 +93,7 @@ class PUM_Telemetry {
 
 		// Cycle through each popup.
 		foreach ( $all_popups as $popup ) {
-			$settings = PUM_Admin_Popups::parse_values( $popup->get_settings() );
+			$settings = PUM_Admin_Popups::fill_missing_defaults( $popup->get_settings() );
 
 			// Cycle through each trigger to count the number of unique triggers.
 			foreach ( $settings['triggers'] as $trigger ) {
@@ -146,7 +146,7 @@ class PUM_Telemetry {
 			}
 		}
 
-		return [
+		$data = [
 			// UID.
 			'uid'                    => self::get_uuid(),
 
@@ -158,6 +158,7 @@ class PUM_Telemetry {
 			'php_version'            => phpversion(),
 			'mysql_version'          => $wpdb->db_version(),
 			'is_localhost'           => self::is_localhost(),
+			'wp_env_type'            => wp_get_environment_type(),
 
 			// WP Install Info.
 			'url'                    => get_site_url(),
@@ -173,7 +174,7 @@ class PUM_Telemetry {
 			'open_count'             => get_option( 'pum_total_open_count', 0 ),
 
 			// Popup Maker Settings.
-			'block_editor_enabled'   => pum_get_option( 'gutenberg_support_enabled' ),
+			'block_editor_enabled'   => ! pum_get_option( 'enable_classic_editor', false ),
 			'bypass_ad_blockers'     => pum_get_option( 'bypass_adblockers' ),
 			'disable_taxonomies'     => pum_get_option( 'disable_popup_category_tag' ),
 			'disable_asset_cache'    => pum_get_option( 'disable_asset_caching' ),
@@ -188,6 +189,17 @@ class PUM_Telemetry {
 			'sizes'                  => $sizes,
 			'sounds'                 => $sounds,
 		];
+
+		/**
+		 * Filter telemetry data before sending.
+		 *
+		 * Allows extensions like Pro to add additional telemetry data.
+		 *
+		 * @since 1.20.0
+		 *
+		 * @param array $data Telemetry data array.
+		 */
+		return apply_filters( 'pum_telemetry_data', $data );
 	}
 
 	/**
@@ -267,7 +279,7 @@ class PUM_Telemetry {
 					'primary' => false,
 					'type'    => 'link',
 					'action'  => '',
-					'href'    => 'https://docs.wppopupmaker.com/article/528-the-data-the-popup-maker-plugin-collects',
+					'href'    => 'https://wppopupmaker.com/docs/policies/the-data-the-popup-maker-plugin-collects/',
 					'text'    => __( 'Learn more', 'popup-maker' ),
 				],
 			],
@@ -354,7 +366,6 @@ class PUM_Telemetry {
 	public static function is_localhost() {
 		$url = network_site_url( '/' );
 		return stristr( $url, 'dev' ) !== false || stristr( $url, 'localhost' ) !== false || stristr( $url, ':8888' ) !== false;
-
 	}
 
 	/**

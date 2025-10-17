@@ -23,10 +23,12 @@ use ImageOptimization\Classes\File_System\File_System;
 use ImageOptimization\Classes\Logger;
 use ImageOptimization\Classes\Utils;
 use ImageOptimization\Modules\Oauth\Classes\Data;
-use ImageOptimization\Modules\Oauth\Classes\Exceptions\Quota_Exceeded_Error;
+use ImageOptimization\Classes\Exceptions\Quota_Exceeded_Error;
 use ImageOptimization\Modules\Optimization\Classes\Exceptions\Bulk_Token_Obtaining_Error;
 use ImageOptimization\Modules\Optimization\Components\Exceptions\Bulk_Optimization_Token_Not_Found_Error;
 use ImageOptimization\Modules\Stats\Classes\Optimization_Stats;
+
+use ImageOptimization\Plugin;
 
 use Throwable;
 
@@ -38,12 +40,12 @@ class Bulk_Optimization_Controller {
 	private const OBTAIN_TOKEN_ENDPOINT = 'image/bulk-token';
 
 	public static function reschedule_bulk_optimization() {
-		self::cancel_bulk_optimization();
+		self::delete_bulk_optimization();
 		self::find_images_and_schedule_optimization();
 	}
 
 	public static function reschedule_bulk_reoptimization() {
-		self::cancel_bulk_reoptimization();
+		self::delete_bulk_reoptimization();
 		self::find_optimized_images_and_schedule_reoptimization();
 	}
 
@@ -53,7 +55,7 @@ class Bulk_Optimization_Controller {
 	 * @return void
 	 * @throws Async_Operation_Exception
 	 */
-	public static function cancel_bulk_optimization(): void {
+	public static function delete_bulk_optimization(): void {
 		$query = ( new Image_Optimization_Operation_Query() )
 			->set_hook( Async_Operation_Hook::OPTIMIZE_BULK )
 			// It's risky to cancel in-progress operations at that point, so we cancel only the pending ones.
@@ -65,7 +67,7 @@ class Bulk_Optimization_Controller {
 		foreach ( $operations as $operation ) {
 			$image_id = $operation->get_args()['attachment_id'];
 
-			Async_Operation::cancel( $operation->get_id() );
+			Async_Operation::remove( [ $operation->get_id() ] );
 
 			( new Image_Meta( $image_id ) )->delete();
 		}
@@ -77,7 +79,7 @@ class Bulk_Optimization_Controller {
 	 * @return void
 	 * @throws Async_Operation_Exception
 	 */
-	public static function cancel_bulk_reoptimization(): void {
+	public static function delete_bulk_reoptimization(): void {
 		$query = ( new Image_Optimization_Operation_Query() )
 			->set_hook( Async_Operation_Hook::REOPTIMIZE_BULK )
 			// It's risky to cancel in-progress operations at that point, so we cancel only the pending ones.
@@ -89,7 +91,7 @@ class Bulk_Optimization_Controller {
 		foreach ( $operations as $operation ) {
 			$image_id = $operation->get_args()['attachment_id'];
 
-			Async_Operation::cancel( $operation->get_id() );
+			Async_Operation::remove( [ $operation->get_id() ] );
 
 			( new Image_Meta( $image_id ) )->delete();
 		}
@@ -241,7 +243,8 @@ class Bulk_Optimization_Controller {
 			'attachments_in_quota' => [],
 			'attachments_out_of_quota' => [],
 		];
-		$images_left = Data::images_left();
+
+		$images_left = Plugin::instance()->modules_manager->get_modules( 'connect-manager' )->connect_instance->images_left();
 
 		if ( ! $images_left ) {
 			throw new Quota_Exceeded_Error( __( 'Images quota exceeded', 'image-optimization' ) );
@@ -418,19 +421,13 @@ class Bulk_Optimization_Controller {
 
 		foreach ( $operations as $operation ) {
 			$image_id = $operation->get_args()['attachment_id'];
+			$image = new Image( $image_id );
 
 			try {
-				$image = new Image( $image_id );
-				$meta = new Image_Meta( $image_id );
-				$wp_meta = new WP_Image_Meta( $image_id );
-
-				$original_file_size = $meta->get_original_file_size( Image::SIZE_FULL )
-									  ?? File_System::size( $image->get_file_path( Image::SIZE_FULL ) );
-				$current_file_size = $wp_meta->get_file_size( Image::SIZE_FULL )
-									 ?? File_System::size( $image->get_file_path( Image::SIZE_FULL ) );
+				$stats = Optimization_Stats::get_image_stats( $image_id );
 			} catch ( Invalid_Image_Exception $iie ) {
 				continue;
-			} catch ( File_System_Operation_Error $e ) {
+			} catch ( Throwable $t ) {
 				$original_file_size = 0;
 				$current_file_size = 0;
 			}
@@ -443,8 +440,8 @@ class Bulk_Optimization_Controller {
 				'image_name' => $image->get_attachment_object()->post_title,
 				'image_id' => $image_id,
 				'thumbnail_url' => $image->get_url( 'thumbnail' ),
-				'original_file_size' => $original_file_size,
-				'current_file_size' => $current_file_size,
+				'original_file_size' => $stats['initial_image_size'],
+				'current_file_size' => $stats['current_image_size'],
 			];
 		}
 

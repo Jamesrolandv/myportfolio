@@ -27,6 +27,7 @@ class Module extends Module_Base {
 
 	public static function component_list() : array {
 		return [
+			'Avif_Compatibility',
 			'Media_Control',
 			'Single_Optimization',
 			'Upload_Optimization',
@@ -34,6 +35,8 @@ class Module extends Module_Base {
 			'List_View_Pointer',
 			'Admin_Bulk_Actions',
 			'Admin_Filter',
+			'Retry',
+			'Actions_Cleanup',
 		];
 	}
 
@@ -46,6 +49,8 @@ class Module extends Module_Base {
 		foreach ( $asset_file['dependencies'] as $style ) {
 			wp_enqueue_style( $style );
 		}
+
+		add_thickbox();
 
 		wp_enqueue_style(
 			'image-optimization-control',

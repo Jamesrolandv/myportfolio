@@ -2,14 +2,14 @@
 /**
  * Class for Admin Pages
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
+// Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
 
 /**
  * Class PUM_Admin_Pages
@@ -44,10 +44,54 @@ class PUM_Admin_Pages {
 	}
 
 	/**
+	 * Get upgrade menu item based on license status.
+	 *
+	 * @return array|null Menu item array or null to exclude from menu.
+	 */
+	private static function get_upgrade_menu_item() {
+		try {
+			$license_service = \PopupMaker\plugin( 'license' );
+			$license_status  = $license_service->get_license_status();
+			$license_tier    = $license_service->get_license_tier();
+
+			// Pro Plus license - don't show upgrade menu.
+			if ( 'valid' === $license_status && 'pro_plus' === $license_tier ) {
+				return null;
+			}
+
+			// Pro license (valid) - show "Go Pro+".
+			if ( 'valid' === $license_status && 'pro' === $license_tier ) {
+				$menu_title = __( 'Go Pro+', 'popup-maker' );
+			} else {
+				// No license or invalid license - show "Go Pro".
+				$menu_title = __( 'Go Pro', 'popup-maker' );
+			}
+
+			return [
+				'page_title' => $menu_title,
+				'menu_slug'  => 'pum-settings#go-pro',
+				'capability' => 'edit_posts',
+				'callback'   => [ 'PUM_Admin_Settings', 'page' ],
+			];
+		} catch ( \Exception $e ) {
+			// Fallback to default if license service unavailable.
+			return [
+				'page_title' => __( 'Go Pro', 'popup-maker' ),
+				'menu_slug'  => 'pum-settings#go-pro',
+				'capability' => 'edit_posts',
+				'callback'   => [ 'PUM_Admin_Settings', 'page' ],
+			];
+		}
+	}
+
+	/**
 	 * Creates the admin submenu pages under the Popup Maker menu and assigns their
 	 * links to global variables
 	 */
 	public static function register_pages() {
+
+		// Determine upgrade menu item based on license status.
+		$upgrade_menu_item = self::get_upgrade_menu_item();
 
 		$admin_pages = apply_filters(
 			'pum_admin_pages',
@@ -62,11 +106,7 @@ class PUM_Admin_Pages {
 					'capability' => 'manage_options',
 					'callback'   => [ 'PUM_Admin_Settings', 'page' ],
 				],
-				'extensions'  => [
-					'page_title' => __( 'Upgrade', 'popup-maker' ),
-					'capability' => 'edit_posts',
-					'callback'   => [ 'PUM_Admin_Extend', 'page' ],
-				],
+				'extensions'  => $upgrade_menu_item,
 				'support'     => [
 					'page_title' => __( 'Help & Support', 'popup-maker' ),
 					'capability' => 'edit_posts',
@@ -81,6 +121,11 @@ class PUM_Admin_Pages {
 		);
 
 		foreach ( $admin_pages as $key => $page ) {
+			// Skip null pages (e.g., upgrade menu for Pro Plus users).
+			if ( null === $page ) {
+				continue;
+			}
+
 			$page = wp_parse_args(
 				$page,
 				[
@@ -156,15 +201,17 @@ class PUM_Admin_Pages {
 				__( 'Tags', 'popup-maker' ),
 			]
 		);
-		$last_pages  = apply_filters(
+
+		$last_pages = apply_filters(
 			'pum_admin_submenu_last_pages',
 			[
-				__( 'Extend', 'popup-maker' ),
 				__( 'Settings', 'popup-maker' ),
 				__( 'Tools', 'popup-maker' ),
 				__( 'Support Forum', 'popup-maker' ),
 				__( 'Account', 'popup-maker' ),
 				__( 'Contact Us', 'popup-maker' ),
+				__( 'Go Pro', 'popup-maker' ),
+				__( 'Go Pro+', 'popup-maker' ),
 				__( 'Help & Support', 'popup-maker' ),
 			]
 		);
@@ -173,25 +220,25 @@ class PUM_Admin_Pages {
 		$b_val = strip_tags( $b[0], false );
 
 		// Sort First Page Keys.
-		if ( in_array( $a_val, $first_pages ) && ! in_array( $b_val, $first_pages ) ) {
+		if ( in_array( $a_val, $first_pages, true ) && ! in_array( $b_val, $first_pages, true ) ) {
 			return - 1;
-		} elseif ( ! in_array( $a_val, $first_pages ) && in_array( $b_val, $first_pages ) ) {
+		} elseif ( ! in_array( $a_val, $first_pages, true ) && in_array( $b_val, $first_pages, true ) ) {
 			return 1;
-		} elseif ( in_array( $a_val, $first_pages ) && in_array( $b_val, $first_pages ) ) {
-			$a_key = array_search( $a_val, $first_pages );
-			$b_key = array_search( $b_val, $first_pages );
+		} elseif ( in_array( $a_val, $first_pages, true ) && in_array( $b_val, $first_pages, true ) ) {
+			$a_key = array_search( $a_val, $first_pages, true );
+			$b_key = array_search( $b_val, $first_pages, true );
 
 			return ( $a_key < $b_key ) ? - 1 : 1;
 		}
 
 		// Sort Last Page Keys.
-		if ( in_array( $a_val, $last_pages ) && ! in_array( $b_val, $last_pages ) ) {
+		if ( in_array( $a_val, $last_pages, true ) && ! in_array( $b_val, $last_pages, true ) ) {
 			return 1;
-		} elseif ( ! in_array( $a_val, $last_pages ) && in_array( $b_val, $last_pages ) ) {
+		} elseif ( ! in_array( $a_val, $last_pages, true ) && in_array( $b_val, $last_pages, true ) ) {
 			return - 1;
-		} elseif ( in_array( $a_val, $last_pages ) && in_array( $b_val, $last_pages ) ) {
-			$a_key = array_search( $a_val, $last_pages );
-			$b_key = array_search( $b_val, $last_pages );
+		} elseif ( in_array( $a_val, $last_pages, true ) && in_array( $b_val, $last_pages, true ) ) {
+			$a_key = array_search( $a_val, $last_pages, true );
+			$b_key = array_search( $b_val, $last_pages, true );
 
 			return ( $a_key < $b_key ) ? - 1 : 1;
 		}

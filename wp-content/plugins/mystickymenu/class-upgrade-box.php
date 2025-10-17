@@ -255,7 +255,7 @@ class Sticky_menu_upgrade_box {
                     <span class="mystickymenu-tab-integration-action">
                         <a href="<?php echo esc_url(admin_url("admin.php?page=my-stickymenu-upgrade")); ?>" target="_blank" class="btn upgradenow-box-btn" data-days="-1">Upgrade now</a>
                     </span>                 
-                    <a href="javascript:;" class="dismiss-btn <?php echo esc_attr($this->plugin_slug); ?>-premio-upgrade-dismiss-btn"><span class="dashicons dashicons-no-alt"></span></a>
+                    <a href="#" class="dismiss-btn <?php echo esc_attr($this->plugin_slug); ?>-premio-upgrade-dismiss-btn"><span class="dashicons dashicons-no-alt"></span></a>
                 </p>
                 <div class="clear clearfix"></div>
             </div>            
@@ -265,9 +265,9 @@ class Sticky_menu_upgrade_box {
                 <button class="<?php echo esc_attr($this->plugin_slug); ?>-close-upgrade-box-popup"><span class="dashicons dashicons-no-alt"></span></button>
                 <div class="<?php echo esc_attr($this->plugin_slug); ?>-upgrade-box-title">Would you like us to remind you about this later?</div>
                 <div class="<?php echo esc_attr($this->plugin_slug); ?>-upgrade-box-options">
-                    <a href="javascript:;" data-days="7">Remind me in 7 days</a>
-                    <a href="javascript:;" data-days="30">Remind me in 30 days</a>
-                    <a href="javascript:;" data-days="-1" class="dismiss">Don't remind me about this</a>
+                    <a href="#" data-days="7">Remind me in 7 days</a>
+                    <a href="#" data-days="30">Remind me in 30 days</a>
+                    <a href="#" data-days="-1" class="dismiss">Don't remind me about this</a>
                 </div>
             </div>
         </div>
@@ -287,7 +287,7 @@ class Sticky_menu_upgrade_box {
                     jQuery(".<?php echo esc_attr($this->plugin_slug); ?>-premio-upgrade-box").remove();
                     jQuery("body").removeClass("has-premio-box");
                     jQuery.ajax({
-                        url: "<?php echo admin_url("admin-ajax.php") ?>",
+                        url: "<?php echo esc_url(admin_url("admin-ajax.php")) ?>",
                         data: "action=<?php echo esc_attr($this->plugin_slug) ?>_upgrade_box&days="+dataDays+"&nonce=<?php echo esc_attr(wp_create_nonce($this->plugin_slug."_upgrade_box")) ?>",
                         type: "post",
                         success: function() {
@@ -307,7 +307,7 @@ class Sticky_menu_upgrade_box {
                     jQuery("body").removeClass("has-premio-box");
                     
 					jQuery.ajax({
-                        url: "<?php echo admin_url("admin-ajax.php") ?>",
+                        url: "<?php echo esc_url(admin_url("admin-ajax.php")) ?>",
                         data: "action=<?php echo esc_attr($this->plugin_slug) ?>_upgrade_box&days="+dataDays+"&nonce=<?php echo esc_attr(wp_create_nonce($this->plugin_slug."_upgrade_box")) ?>",
                         type: "post",
                         success: function() {

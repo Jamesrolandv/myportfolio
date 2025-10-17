@@ -2,8 +2,8 @@
 /**
  * Model for Popup
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -184,14 +184,14 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 	 * Returns a specific popup setting with optional default value when not found.
 	 *
 	 * @param string $key Setting key.
-	 * @param mixed  $default Default value if not set.
+	 * @param mixed  $default_value Default value if not set.
 	 *
 	 * @return bool|mixed
 	 */
-	public function get_setting( $key, $default = false ) {
+	public function get_setting( $key, $default_value = false ) {
 		$settings = $this->get_settings();
 
-		return isset( $settings[ $key ] ) ? $settings[ $key ] : $default;
+		return isset( $settings[ $key ] ) ? $settings[ $key ] : $default_value;
 	}
 
 	/**
@@ -251,9 +251,11 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 		foreach ( $settings as $key => $value ) {
 			$field = PUM_Admin_Popups::get_field( $key );
 
-			if ( false === $field && isset( $value ) ) {
-				// This is a value set programatically, not by a defined field. ex theme_slug.
-				$settings[ $key ] = $value;
+			if ( false === $field ) {
+				if ( isset( $value ) ) {
+					// This is a value set programatically, not by a defined field. ex theme_slug.
+					$settings[ $key ] = $value;
+				}
 				continue;
 			}
 
@@ -457,6 +459,10 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 
 			if ( ! empty( $deprecated_values ) ) {
 				foreach ( $deprecated_values as $old_key => $value ) {
+					// Skip count fields that don't belong in close settings.
+					if ( 'close' === $group && in_array( $old_key, [ 'count', 'count_total' ], true ) ) {
+						continue;
+					}
 
 					if ( ! isset( $group_values[ $old_key ] ) ) {
 						$group_values[ $old_key ] = $value;
@@ -529,7 +535,6 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 		];
 
 		return isset( $remapped_meta_settings_keys[ $group ] ) ? $remapped_meta_settings_keys[ $group ] : [];
-
 	}
 
 	/**
@@ -762,10 +767,13 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 	 *
 	 * @return array
 	 */
-	public function get_conditions_with_filters( $filters = [ 'string' => false, 'string2' => true] ) {
+	public function get_conditions_with_filters( $filters = [
+		'string'  => false,
+		'string2' => true,
+	] ) {
 
-		$js_only = isset( $filters[ 'js_only'] ) && $filters[ 'js_only' ];
-		$php_only = isset( $filters[ 'php_only'] ) && $filters[ 'php_only' ];
+		$js_only  = isset( $filters['js_only'] ) && $filters['js_only'];
+		$php_only = isset( $filters['php_only'] ) && $filters['php_only'];
 
 		$conditions = $this->get_setting( 'conditions', [] );
 		// Sanity Check on the values not operand value.
@@ -799,7 +807,7 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 	public function get_conditions( $filters = false ) {
 
 		// Backwards compatibility for old filters.
-		$conditions = false === $filters ? $this->get_setting( 'conditions', [] ) :  $this->get_conditions_with_filters( $filters );
+		$conditions = false === $filters ? $this->get_setting( 'conditions', [] ) : $this->get_conditions_with_filters( $filters );
 
 		foreach ( $conditions as $group_key => $group ) {
 			foreach ( $group as $key => $condition ) {
@@ -902,9 +910,7 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 		}
 
 		foreach ( $this->get_conditions() as $group ) {
-
 			foreach ( $group as $condition ) {
-
 				if ( in_array( $condition['target'], $conditions, true ) ) {
 					$found = true;
 				}
@@ -1114,7 +1120,7 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 		$this->update_meta( 'popup_last_' . $keys[1], time() );
 
 		$site_total = get_option( 'pum_total_' . $keys[0] . '_count', 0 );
-		$site_total++;
+		++$site_total;
 		update_option( 'pum_total_' . $keys[0] . '_count', $site_total );
 
 		// If is multisite add this blogs total to the site totals.
@@ -1122,6 +1128,22 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 			$network_total = get_site_option( 'pum_site_total_' . $keys[0] . '_count', false );
 			$network_total = ! $network_total ? $site_total : $network_total + 1;
 			update_site_option( 'pum_site_total_' . $keys[0] . '_count', $network_total );
+		}
+
+		if ( 'conversion' === $event || 'open' === $event ) {
+			$open_count       = (int) $this->get_event_count( 'open', 'current' );
+			$conversion_count = (int) $this->get_event_count( 'conversion', 'current' );
+			$this->update_meta( 'popup_conversion_rate', ( $open_count > 0 && $conversion_count >= 0 ) ? ( $conversion_count / $open_count ) : 0 );
+
+			$site_total_opens       = (int) get_option( 'pum_total_open_count', 0 );
+			$site_total_conversions = (int) get_option( 'pum_total_conversion_count', 0 );
+			update_option( 'pum_overall_conversion_rate', ( $site_total_opens > 0 && $site_total_conversions >= 0 ) ? ( $site_total_conversions / $site_total_opens ) : 0 );
+
+			if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+				$network_total_opens       = (int) get_site_option( 'pum_site_total_open_count', 0 );
+				$network_total_conversions = (int) get_site_option( 'pum_site_total_conversion_count', 0 );
+				update_site_option( 'pum_overall_conversion_rate', ( $network_total_opens > 0 && $network_total_conversions >= 0 ) ? ( $network_total_conversions / $network_total_opens ) : 0 );
+			}
 		}
 	}
 
@@ -1198,10 +1220,14 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 	 * @param array $a Array with `timestamp` key for comparison.
 	 * @param array $b Array with `timestamp` key for comparison.
 	 *
-	 * @return bool
+	 * @return int
 	 */
 	public function compare_resets( $a, $b ) {
-		return (float) $a['timestamp'] < (float) $b['timestamp'];
+		$a = (float) $a['timestamp'];
+		$b = (float) $b['timestamp'];
+
+		// Sort in descending order (newest first) to get the most recent reset
+		return $b <=> $a;
 	}
 
 	/**
@@ -1247,9 +1273,9 @@ class PUM_Model_Popup extends PUM_Abstract_Model_Post {
 	public function passive_migration() {
 		$this->doing_passive_migration = true;
 
-		for ( $i = $this->data_version; $this->data_version < $this->model_version; $i ++ ) {
+		for ( $i = $this->data_version; $this->data_version < $this->model_version; $i++ ) {
 			do_action_ref_array( 'pum_popup_passive_migration_' . $this->data_version, [ &$this ] );
-			$this->data_version ++;
+			++$this->data_version;
 
 			/**
 			 * Update the popups data version.

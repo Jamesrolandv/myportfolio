@@ -1,52 +1,70 @@
-=== Popup Maker - Popup for opt-ins, lead gen, & more ===
+=== Popup Maker - Boost Sales, Conversions, Optins, Subscribers with the Ultimate WP Popups Builder ===
 Contributors: danieliser, codeatlantic
 Author URI: https://wppopupmaker.com/?utm_campaign=readme&utm_medium=referral&utm_source=readme-header&utm_content=author-url
 Plugin URI: https://wppopupmaker.com/?utm_campaign=readme&utm_medium=referral&utm_source=readme-header&utm_content=plugin-url
 Donate link:
-Tags:  marketing, ecommerce, popup, popups, optin, conversion, promotion, pop-up, lightbox, modal, popupmaker
-Requires at least: 4.9
-Tested up to: 6.5.0
-Requires PHP: 5.6
-Stable tag: 1.18.5
+Tags:  marketing, popup, popups, optin, conversion
+Requires at least: 6.6
+Tested up to: 6.8.2
+Requires PHP: 7.4
+Stable tag: 1.21.5
 License: GPLv2 or later
 License URI:  http://www.gnu.org/licenses/gpl-2.0.html
 
-Looking to boost your marketing and lead gen efforts? Using popups are a great way to increase your site's conversions!
+Want to boost sales & marketing efforts? Use your favorite forms & builder. Unlimited popups & impressions, keep your data, no monthly subscription.
 
 == Description ==
 
-= Drive More Sales and Email List Opt-Ins Using Popups =
-Create conversion-focused campaigns to grow your revenue and email list on your WordPress site with popups, slide-ins, banners, and more!
+<h3>📈 Drive More Sales, Leads & Email List Opt-Ins Using Popup Maker</h3>
 
-[Popup Maker](https://wppopupmaker.com/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=main-site-link)™ is the **best popup plugin WordPress** has to offer. It is incredibly versatile & flexible. Bend it to create any type of popup, modal, or content overlay for your WordPress website.
+**Popup Maker™**, rated as the **[best WordPress popup plugin](https://wppopupmaker.com/conversion-optimization/best-wordpress-popup-plugins/)** by our community of 780,000+ users, empowers you to create stunning popups, modals, and overlays in minutes. Whether you're a beginner or a pro, our versatile toolkit makes it easy to boost your WordPress site's engagement.
 
-> **Great plugin! Got the job done**
-> "Love how easy it was to make popups with this!" ~[Zac Gordon](https://wordpress.org/support/topic/great-plugin-got-the-job-done/)
+Transform your WordPress site into a conversion powerhouse! Create targeted campaigns using popups, exit-intent forms, slide-ins, and smart banners to skyrocket your revenue and build your email list faster than ever.
 
-With Popup Maker, you can create popups such as:
+> **We switched to Popup Maker for our popups and couldn't be happier.**
+>
+> "We recommend it to all our clients too. Popup Maker is an essential piece of our website for maximizing growing our email list, increasing sales conversions, and guiding users with strategic calls to action. Great support too."
+>
+> ~ **Chris Badgett, LifterLMS CEO**
+
+<h4>🔥 Ready to get started?</h4>
+
+👉 [Visit Our Website](https://wppopupmaker.com/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=main-site-link) - Explore all features & pricing
+👉 [Join Our Conversion Optimization Community](https://wppopupmaker.com/community/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=community) - Share strategies & learn from experts
+👉 [Read Our Guides](https://wppopupmaker.com/docs/category/using-popup-maker/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=user-guide) - Learn popup best practices
+👉 [Get Help](https://wppopupmaker.com/support/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=support) - World-class support when you need it
+
+<h3>🎬 See What's Possible with Popup Maker</h3>
+
+https://www.youtube.com/watch?v=PomnMganMVM
+
+[Stunning examples of what you can create in Popup Maker **(View Video)**](https://www.youtube.com/watch?v=PomnMganMVM)
+
+<h3>🛠️ Ultimate WordPress Popup Builder: Every Type of Conversion Popup at Your Fingertips</h3>
+
+With Popup Maker, you have the ultimate popup builder toolkit at your disposal, create any type of popup in minutes:
 
 * Email opt-in popups,
+* Exit-Intent popups.
+* Lead generation popups,
+* Subscription list popups
 * Content upgrade popups,
-* Lead gen popups,
 * Ecommerce popups,
 * Contact form popups,
-* Coronavirus/COVID-19 announcements,
+* Coronavirus/COVID-19 styleannouncements,
 * [EU cookie notices](https://ninjaforms.com/blog/eu-cookie-notices-ninja-forms/),
 * Popups to greet visitors from ProductHunt (requires [premium Advanced Targeting Conditions feature](https://wppopupmaker.com/extensions/advanced-targeting-conditions/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=example-popups&utm_term=greet-producthunt)),
 * WooCommerce upsell popups (requires [premium WooCommerce feature](https://wppopupmaker.com/extensions/woocommerce-pro/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=example-popups&utm_term=woocommerce-upsells)),
 * WooCommerce cross-sell popups (requires [premium WooCommerce feature](https://wppopupmaker.com/extensions/woocommerce-pro/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=example-popups&utm_term=woocommerce-crosssells)),
 * & more.
 
-Check out some examples in our video below:
+> **Even the free version is great**
+> "Does exactly what it says and is easy to use. Free version allows full control of where popup appears, how it looks and setting conditions for popup reappearing across website."
+> ~[@rsb1234](https://wordpress.org/support/topic/even-the-free-version-is-great-2/)
 
-https://www.youtube.com/watch?v=PomnMganMVM
+<h3>🔑 Trigger Popups with Ease: Multiple Ways to Open Your Popups</h3>
 
-[Stunning examples of what you can create in Popup Maker **(View Video)**](https://www.youtube.com/watch?v=PomnMganMVM)
-
-> **Great product – best I’ve used!**
-> "I’ve tried many different popup programs, but I must say I find this one the best!" ~[@jessefjosserand](https://wordpress.org/support/topic/great-product-best-ive-used/)
-
-Multiple ways to trigger a popup to open including:
+Popup Maker offers a variety of triggers to open your popups:
 
 * Open automatically (with optional delay)
 * Click button (or any other element) to open
@@ -54,22 +72,49 @@ Multiple ways to trigger a popup to open including:
 * Open when someone is about to leave your site (requires [premium Exit Intent feature](https://wppopupmaker.com/extensions/exit-intent-popups/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=triggers&utm_term=exit-intent))
 * Open when someone has scrolled down your page (requires [premium Scroll Trigger feature](https://wppopupmaker.com/extensions/scroll-triggered-popups/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=triggers&utm_term=scroll))
 
+<h3>🎯 Smart Popup Targeting: Deliver the Perfect Message to Every Visitor</h3>
+
+Never show irrelevant popups again! Our powerful targeting system ensures your messages reach exactly who needs to see them, when they need to see them. From basic page targeting to advanced user behavior conditions, you have complete control over your popup's visibility.
+
+<h4>Free Targeting Options:</h4>
+
+* Target specific posts, pages, or custom post types
+* Target by post categories or tags, & custom taxonomies
+* Front page vs blog page targeting
+
+<h4>Premium Targeting Features:</h4>
+
+* Advanced user behavior targeting
+* Show on specific URLs or URL patterns
+* Show/hide based on user roles
+* Geolocation targeting
+* Browser & OS targeting
+* Time & date scheduling
+* Page scroll depth targeting
+* User login status
+* Previous popup interactions
+* Ecommerce purchasing & cart rules
+* Advanced custom taxonomy targeting
+* Referrer source targeting
+
+
+<h3>🔑 Integrate with Your Favorite Form Plugins</h3>
+
 Popup Maker integrates with all of the most popular form plugins to allow you to open a popup when a form is submitted or close the popup when a form inside the popup is submitted. Popup Maker integrates with:
+
+<h4>Form Plugin Integrations:</h4>
 
 * Ninja Forms
 * Gravity Forms
 * Contact Form 7 (CF7)
-* Caldera Forms
 * WPForms
+* WSForm
+* Fluent Forms
 * Mailchimp for WordPress (MC4WP)
 * Formidable Forms
 * and more!
 
-Or, use our own built-in subscriber form! Use our premium features to integrate with:
-
-* MailChimp
-* Aweber
-* More coming soon!
+<h4>Email Marketing & CRM Integrations:</h4>
 
 Already created a form in your email marketing service? Using our free version, you can copy and paste any form created by most list building platforms, including but not limited to:
 
@@ -81,53 +126,61 @@ Already created a form in your email marketing service? Using our free version, 
 * Constant Contact
 * Mail Poet
 * Mad Mimi
+* FluentCRM
 * Hubspot
 * Emma
 * and more!
 
-= Other Awesome Features =
+<h3>⚙️ Advanced Popup Controls: Customize Every Aspect of Your Popups</h3>
 
-* Use our unique **Popup Editor** to build any content you can imagine inside of our popups, plus control popup sizing, position, animation, and so much more.
-* **Conditions** allow you to target exactly who will (and will not) see your popups. Target any WordPress content such as: posts, pages, and 26 more!
-* Dictate the frequency at which users see your popups using **Cookies**, and edit how the cookies are created using Cookie Creation Events.
+Take complete control of your popups with our powerful customization features:
 
- = Trusted by many people just like you! =
-Popup Maker is used on over 600,000 websites and has received over 3,900 5-star reviews just like this one:
+* **Visual Popup Editor** - Design beautiful popups with our intuitive drag & drop editor. Control sizing, positioning, animations, and more
+* **Smart Display Rules** - Set cookie-based display frequency to prevent popup fatigue and improve user experience
+* **Custom Animations** - Choose from slide, fade, and other engaging entrance/exit animations
+* **Mobile-First Design** - Every popup is fully responsive and looks great on all devices
+* **Custom Positioning** - Place your popups exactly where you want them - centered, corners, or custom positions
+* **Cookie Controls** - Fine-tune when and how often visitors see your popups with advanced cookie settings
+
+<h3>👍 Trusted by many people just like you!</h3>
+
+Popup Maker is used on over 780,000 websites and has received over 4,200 5-star reviews just like this one:
 
 > **Great plugin, everything I needed**
 > "Really nice plugin, simple to use, responsive, a good catch !" ~[@lemmmy](https://wordpress.org/support/topic/great-plugin-everything-i-needed/)
 
-= Enhance Your WordPress Popups Using Our Premium Features =
-Need even more features? Popup Maker has over 20 premium features including:
+<h3>🛠️ Enhance Your WordPress Popups Using Our Premium Features</h3>
 
-* [Exit Intent](https://wppopupmaker.com/extensions/exit-intent-popups/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=exit-intent)
-* [Popup Analytics](https://wppopupmaker.com/extensions/popup-analytics/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=popup-analytics)
-* [Advanced Targeting Conditions](https://wppopupmaker.com/extensions/advanced-targeting-conditions/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=advanced-targeting-conditions)
-* [Forced Interaction](https://wppopupmaker.com/extensions/forced-interaction/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=forced-interaction)
-* [Scheduling](https://wppopupmaker.com/extensions/scheduling/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=scheduling)
-* And [many more](https://wppopupmaker.com/extensions/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=all-extensions)!
+Need even more features? Popup Maker has over 20 premium features to supercharge your conversion rates:
 
-Have questions? Check out [our documentation](https://docs.wppopupmaker.com?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=questions&utm_term=documentation) or [reach out to our support](https://wppopupmaker.com/support/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=questions&utm_term=support)!
+* [Exit Intent](https://wppopupmaker.com/extensions/exit-intent-popups/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=exit-intent) - Catch abandoning visitors before they leave with perfectly timed offers
+* [Popup Analytics](https://wppopupmaker.com/extensions/popup-analytics/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=popup-analytics) - Track views, conversions, and optimize your popup performance with detailed insights
+* [Advanced Targeting Conditions](https://wppopupmaker.com/extensions/advanced-targeting-conditions/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=advanced-targeting-conditions) - Show popups based on user behavior, referral source, geolocation, and more
+* [Forced Interaction](https://wppopupmaker.com/extensions/forced-interaction/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=forced-interaction) - Ensure critical messages are seen with popups that require acknowledgment
+* [Scheduling](https://wppopupmaker.com/extensions/scheduling/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=scheduling) - Display time-sensitive offers and content automatically at the perfect moment
+* And [many more premium features](https://wppopupmaker.com/extensions/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=premium-features&utm_term=all-extensions) to help you maximize conversions!
 
-Want to contribute? We are [on GitHub](https://github.com/PopupMaker/Popup-Maker)!
+<h3>🤝 Join Our Growing Community</h3>
 
-Would you like to help translate the **best WordPress popup plugin** into more languages? [Join our WP-Translations Community](https://translate.wordpress.org/projects/wp-plugins/popup-maker).
+We believe in making Popup Maker better together! Here's how you can get involved:
 
-= Created by Code Atlantic =
+* 📚 [Read Our Documentation](https://wppopupmaker.com/docs/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=questions&utm_term=documentation) - Comprehensive guides and tutorials
+* 💬 [Get Premium Support](https://wppopupmaker.com/support/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=questions&utm_term=support) - Our team is here to help
+* 🌟 [Join Our Community](https://wppopupmaker.com/community/?utm_campaign=readme&utm_medium=referral&utm_source=readme-description&utm_content=community) - Share strategies & learn from experts
+* 💻 [Contribute on GitHub](https://github.com/PopupMaker/Popup-Maker) - Help improve the code
+* 🌍 [Help with Translations](https://translate.wordpress.org/projects/wp-plugins/popup-maker) - Make the **best WordPress popup plugin** accessible in your language
+* ⭐ [Leave a Review](https://wordpress.org/support/plugin/popup-maker/reviews/#new-post) - Share your experience with others
 
-Popup Maker is built by the [Code Atlantic][codeatlantic] team. We create high-quality WordPress plugins that help you grow your WordPress sites.
+
+<h3>Created by Code Atlantic</h3>
+
+Popup Maker is built by the [Code Atlantic](https://code-atlantic.com) team. We create high-quality WordPress plugins that help you grow.
 
 Check out some of our most popular plugins:
 
-* [User Menus][usermenus] - Show Or Hide Menu Items For Different Users
-* [Content Control][contentcontrol] - Restrict Access to Pages and Posts
+* [Content Control](https://contentcontrolplugin.com/) - Restrict Access to Pages and Posts
+* [User Menus](https://wordpress.org/plugins/user-menus/) - Show Or Hide Menu Items For Different Users
 
-
-[codeatlantic]: https://code-atlantic.com "Code Atlantic - High Quality WordPress Plugins"
-
-[usermenus]: https://wordpress.org/plugins/user-menus/ "Show Or Hide Menu Items For Different Users"
-
-[contentcontrol]: https://wordpress.org/plugins/content-control/ "Control Who Can Access Content"
 
 == Frequently Asked Questions ==
 
@@ -150,19 +203,19 @@ Some popups we have seen work well for ecommerce sites include:
 * Cart abandonment popups - offering discounts or support when someone is about to leave the checkout page
 
 = Where is your documentation? =
-You can find our documentation over on [our docs site](https://docs.wppopupmaker.com?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=documentation)
+You can find our documentation over on [our docs site](https://wppopupmaker.com/docs/?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=documentation)
 
 = How do I open a popup? =
-Using "triggers", you can customize what makes each popup open. Review [our triggers documentation here](https://docs.wppopupmaker.com/article/141-triggers-cookies?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=open-a-popup)
+Using "triggers", you can customize what makes each popup open. Review [our triggers documentation here](https://wppopupmaker.com/docs/controlling-popups/using-triggers-and-cookies-together/?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=open-a-popup)
 
 = How do I stop popups from opening repeatedly? =
-Using "cookies", you can set up how long until the popup opens again, if ever. Review [our cookies documentation](https://docs.wppopupmaker.com/article/148-cookies?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=stop-opening-repeatedly)
+Using "cookies", you can set up how long until the popup opens again, if ever. Review [our cookies documentation](https://wppopupmaker.com/docs/controlling-popups/cookies-settings-and-features/?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=stop-opening-repeatedly)
 
 = What do I do if I want a popup to show only on a certain page/post/etc? =
-Using "conditions", you can specify where the popup will be shown. Check out [our conditions documentation](https://docs.wppopupmaker.com/article/140-conditions?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=target-certain-pages)
+Using "conditions", you can specify where the popup will be shown. Check out [our conditions documentation](https://wppopupmaker.com/docs/controlling-popups/conditions/?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=target-certain-pages)
 
 = Why aren't my popups opening/working? =
-There are several common causes for this, check [this guide for help](https://docs.wppopupmaker.com/article/265-my-popup-wont-work-how-can-i-fix-it?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=popup-wont-open) resolving it.
+There are several common causes for this, check [this guide for help](https://wppopupmaker.com/docs/problem-solving/troubleshooting-your-first-popup/?utm_campaign=readme&utm_medium=referral&utm_source=readme-faqs&utm_content=popup-wont-open) resolving it.
 
 == Screenshots ==
 
@@ -179,159 +232,137 @@ There are several common causes for this, check [this guide for help](https://do
 
 == Changelog ==
 
-View our [complete changelog](https://github.com/PopupMaker/Popup-Maker/blob/master/CHANGELOG.md) for up-to-date information on what has been going on with the development of Popup Maker.
+For the latest updates and release information:
 
-= v1.18.5 - 03/19/2024 =
+* Join our [community](https://wppopupmaker.com/community/) for important release announcements and discussions
+* Visit our [changelog](https://wppopupmaker.com/changelog/) for detailed version history
+* View our [complete development changelog](https://github.com/PopupMaker/Popup-Maker/blob/master/CHANGELOG.md)
 
-* Fix: Error in some extensions due to action timing change. Reverting.
+= 1.21.5 - 2025-10-13 =
 
-= v1.18.4 - 03/18/2024 =
+**Improvements**
 
-* Fix: Missing file error due to SVN commit issue with v1.18.3.
+-   Optimized Google Fonts integration by eliminating database transients and API calls in favor of direct JSON loading with in-memory caching. This resolves reported database crashes from large font data and improves performance by 83% (file size reduced from 1.5MB to 255KB) while eliminating all database overhead.
 
-= v1.18.3 - 03/18/2024 =
+**Fixes**
 
-* Security: Popup Close shortcode escaping was not working correctly on urls. Admins could insert unsecure urls into the popup close button which could be triggered on middle click.
-* Improvement: Added new pum_log_message function to simplify logging & reduce potential for errors.
-* Fix: Prevent errors when logging file is not writable in some systems.
+-   Fixed accessibility tab trapping JavaScript error "trigger is not a function" when using keyboard navigation in popups.
+-   Fixed potential error when get_current_screen() is not available.
 
-= v1.18.2 - 07/03/2023 =
+= 1.21.4 - 2025-09-25 =
 
-* Fix: WP 4.9 missing `wp_get_environment_type` function notices
+**Improvements**
 
-= v1.18.1 - 03/08/2023 =
+-   Prevented misleading "Lite" messaging when extensions are active. Extension functionality will continue to work as expected.
 
-* Improvement: Add nonce to asset cache purging for admins.
-* Fix: PHP 8.2 Deprecated notices.
-* Fix: Bug in asset caching causing assets to falsly determine they couldn't be writtien.
-* Fix: Add backcompat fix for WP >5.3 `wp_date` errors.
+**Fixes**
 
-= v1.18.0 - 02/10/2023 =
+-   Fixed Editor role users not being able to edit popups and themes, changing default permissions from `manage_options` to `edit_others_posts`.
+-   Fixed issue with conditions not working properly when advanced cookie rules were enabled in Advanced Targeting.
+-   Fixed popup titles being cleared when editing popups.
 
-* Accessibility: Use newer WCAG `aria-modal` attributes and remove `aria-hidden` methods.
-* Improvement: Font Awesome 6 support for close button text.
-* Improvement: Add currently loaded popup count to Admin toolbar if enabled.
-* Improvement: Debug logging now auto truncates, and limits to 1 write per page load.
-* Tweak: Remove extra slash `/` from some asset paths.
-* Fix: Removes html from displaying in popup in place of privacy policy link.
-* Fix: Resolve issues with upgrade process button not always starting when clicked.
-* Fix: Extra escaping was causing some code to HTML to not render in dashboard notices.
-* Fix: Bug causing disabled name field to be shown in sub forms.
-* Fix: HTML entities in some trigger option fields were not being rendered properly.
-* Security: Obfuscate debug log file location using hash in file.
-* Security: Only allow users with permission to edit popup to toggle it on/off.
-* Security: Add nonce to object search API requests
-* Developer: New `pum_cookie_domain` filter.
-* Developer: Lots of PHPCS notices cleaned up, more to come.
+**Developers**
 
-= v1.17.1 - 12/04/2022 =
+-   Added `popup_maker/permissions` filter to allow customization of user permissions for Popup Maker functionality.
 
-* Improvement: Update EDD Updater to latest for extension update handling.
-* Improvement: Add handler for properly renaming extension folder names during update without manual reactivation by user.
-* Tweak: Set proper default tab on Tools page.
-* Tweak: Removed deprecated Scheduled Actions tab.
-* Fix: Rendering issue with review request.
-* Fix: ATC Cookie condition was preventing popup from loading.
+= 1.21.3 - 2025-09-21 =
 
-= v1.17.0 - 11/24/2022 =
+**Fixes**
 
-* Improvement: Added contextual notification system to be able to notify site admins about important information including security notices, beta tests, extension sales & more without requiring a plugin update.
-* Improvement: Render analytic reset times in server properly rather than UTC.
-* Tweak: Remove all reference to `select2` without the prefixed `pumselect2` to prevent confusion and further isolate our dependencies from 3rd party interference.
+-   Fixed page builder compatibility issues by reverting popup preloading timing to wp_enqueue_scripts:11 (matching v1.20.6 behavior).
+-   Fixed delayed initialization of $.fn.popmake.triggers object for proper backward compatibility with legacy extensions.
+-   Fixed prevent popup init console notice when Debug Mode is not enabled.
 
-= v1.16.14 - 11/08/2022 =
+= 1.21.2 - 2025-09-18 =
 
-* Version bump do to release issue.
+**Fixes**
 
-= v1.16.13 - 11/08/2022 =
+-   Fixed Beaver Builder compatibility issue that appeared in v1.21.0, special thanks to @robbymccullough at Beaver Buidler for the assist
+-   Fixed PHP warning "Undefined property: stdClass::$post_content" in Assets.php when post object lacks post_content property.
+-   Fixed Restore missing initialization of $.fn.popmake.conditions object for backward compatibility You with legacy extensions.
 
-* Improvement: Removed some complex functionalities that were no longer needed but causing intermittent issues.
-* Improvement: Replace wp_remote_post with wp_remote_get for extension API calls to allow caching.
-* Improvement: Fixed low quality images on welcome screen.
+= 1.21.1 - 2025-09-16 =
 
-= v1.16.12 - 10/26/2022 =
+**Fixes**
 
-* Improvement: Optimize dashboard support page to load much quicker.
+-   PHP 7.4 errors due to strict function return types with union types that are not supported.
+-   Ensure bundled scripts & styles dependencies are properly loaded.
 
-= v1.16.11 - 10/25/2022 =
+= 1.21.0 - 2025-09-15 =
 
-* Security: Cleaned up mustache js templates usage of unescaped output.
-* Fix: Bug in `popup_trigger` & `popup_close` shortcode's when using `tag="button"`.
+This update begins the process of modernizing our codebase while polishing existing stuff & adding new features.
 
-= v1.16.10 - 10/18/2022 =
+**Minimum Requirements Change**
 
-* Improvement: Added nonce to previews.
-* Improvement: Standardizing coding standards, convert to short arrays.
-* Improvement: First phase of a large clean up of older code.
-* Fix: Recent improvements to conditions handling caused some issues in some cases.
-* Fix: Bug caused by security patch in v1.16.9 which caused shortcodes to render content strangely.
+-   PHP: 7.4+
+-   WordPress: 6.6+
 
-= v1.16.9 - 09/23/2022 =
+**Features**
 
-* Security: Patched XSS vulnerability allowing contributors to run unfiltered JavaScript.
+-   Trackable Call to Actions
+    -   Create as many as you need.
+    -   Track results, per link & per popup.
+    -   Redirect to any page or url.
+    -   Call To Action Button blocks for gutenberg to easily insert trackable links with style.
+    -   CTA Shortcode to insert them without Gutenberg.
+    -   Works with premium Popup Analytics.
+    -   Upgrade to Popup Maker Pro or Pro+ to use them outside popups, for quick import/export, or to create WooCommerce add to cart & apply discount buttons.
+-   Conversion tracking for all internal popup links enabling better analysis of popup performance and user engagement.
+-   New `On Conversion` cookie event to disable popups once they convert.
+-   New Bricks Builder form integration for conversion tracking, form based cookies, closing popups after submission, and more.
 
-= v1.16.8 - 09/12/2022 =
+**Security**
 
-* Fix: Error on widgets screen when using the new `Block` based widget editor due to an old script being loaded.
-* Fix: Previews were not working when popup was in draft status, or when not enabled. Now they always work.
-* Fix: Error caused by non unicode characters when Debug Mode was enabled.
+-   Minor:Removed Easy Modal v2 [modal] shortcode compatibility mode as it has been deprecated for a long and was recently reported to include an unescaped title output.
 
-= v1.16.7 - 04/05/2022 =
+**Improvements**
 
-* Note: Bumped 2 versions as v1.16.6 may not have fully fixed it fully.
-* Fix: Regression fix due to breaking content rendering.
+-   Refactored core analytics to prevent duplicate conversion tracking when Pro is active.
+-   Block editor is now the default for new popups, replacing the previous opt-in beta approach for a more streamlined editing experience.
+    -   Added "Use Classic Editor" setting for users who prefer the traditional popup editor interface.
+    -   Existing users who previously disabled the block editor will see a one-time migration notice with options to continue using the block editor or switch to classic.
+    -   Updated new user onboarding to include guidance about the classic editor option for users who prefer the traditional interface.
+-   Optimized popup `open` functions to improve browser animation reliability and consistent user experience. This update aims to eliminate visual inconsistencies and resolve issues where popups occasionally failed to display.
+-   Fixed settings page save notifications that previously only appeared after redirects, now displays success notice on all settings saves.
+-   Added plugin settings shortcut to the admin toolbar menu.
+-   Updated CSS selector generation tool with click-to-copy and improved selectors.
+-   Better grouping of Popup Maker extensions in the Plugins page.
+-   Updated build processes to rely on @wordpress/scripts & Webpack, as well as improved developer tooling. This should result in smaller JS & CSS file sizes, more reliable builds, and faster development cycles.
+-   Updated all branding to use SVGs and new marks/logos.
+-   Improve reliability of admin notice dismissals.
+-   Use `navigator.sendBeacon` when available for more reliable analytics.
+-   Better handling of version changes & migration processing during plugin updates.
+-   Added ability to search multiple post types in postselect fields.
+-   Added ability to search multiple taxonomies in taxonomyselect fields.
+-   Added validation for hex color conversion to prevent deprecated notices.
 
-= v1.16.5 - 04/04/2022 =
+**Fixes**
 
-* Improvement: Add precautionary escaping of some generated outputs. Shout out to [@roelvb79](https://twitter.com/roelvb79) for the report.
-* Improvement: Remove leftover console logging code.
-* Fix: Typo in admin template rendering for cookie editor.
+-   Fixed multicheck fields not properly saving when all options were unchecked, preventing users from clearing all selections in settings like analytics reporting permissions.
+-   `Close on overlay click` & `Close on ESC press` stopped working if 2 popups were open and one closed.
+-   Potential error due to post object missing a post type.
+-   Prevent missing options data in DB from throwing errors on PHP 8.3+.
+-   Prevent error when Gravity Forms settings are not set.
 
-= v1.16.4 - 01/25/2022 =
+**Developers**
 
-* Improvement: Prevent changing aria-hidden if its already set when showing a popup.
-* Improvement: Remove usage of !important in several CSS rules.
-* Improvement: Pass wp_get_environment_type to license server to prevent dev servers from taking a site activation.
-* Improvement: Add new prerequisite checking class for extensions to use for more reliable activations.
-* Improvement: Add new `pumBeforeInit` jQuery event.
-* Fix: Remove unwanted outline when no focusable elements existed in popups.
+-   Optimized plugin loading & activation mechanisms.
+-   First stage of modernizing & reorganizing to use PHP namespaces & other PHP 7.4 optimizations.
+-   Updating frontend JavaScript to use hooks/filters system instead of global variables over time.
+    -   Added new JS `popupMaker.triggers` filter to allow adding custom triggers.
+-   Added new helper methods for registering Popup Maker custom scripts & styles that will be bundled with our plugin JS/CSS files automatically via AssetCache API.
+-   Lots of WPCS & TypeScript/PHP Type enforcement fixes.
 
-= v1.16.3 - 11/16/2021 =
+= 1.20.6 - 2025-08-14 =
 
-* Improvement: Code cleanup/simplifications, and more inline documentation.
-* Improvement: Added enhancements in the analytics systems for upcoming extension updates.
-* Fix: Issue with width of some popup editor select fields.
+-   Fix: WordPress 4.9 compatibility by checking has_blocks() function existence before calling it.
+-   Fix: WordPress 4.9 compatibility by checking wp_date() function existence before calling it.
 
-= v1.16.2 - 07/07/2021 =
+= 1.20.5 - 2025-05-30 =
 
-* Improvement: All plugin images optimized for size. This only affects our admin pages.
-* Improvement: Various label & text changes.
-* Improvement: Improved focus when popups content is taller than screen and first focusable element is off screen.
-* Fix: Focus trapping issue when no focusable elements within popup contents.
-* Fix: Deprecated function parameter notices on PHP 8.
+-   Security: Fix potential XSS for custom HTML based popups.
 
-= v1.16.1 - 03/21/2021 =
+= 1.20.4 - 2025-01-29 =
 
-* Fix: WP <5.0 and ClassicPress saw errors in the admin for usage of WP_Block_Type_Registry. [Issue #995](https://github.com/PopupMaker/Popup-Maker/issues/995)
-
-= v1.16.0 - 03/09/2021 =
-
-* Feature: Add 'flush popup cache' link in admin bar menu to quickly clear cached plugin JS & CSS files. [Issue #931](https://github.com/PopupMaker/Popup-Maker/issues/931)
-* Improvement: Remove 'Tools -> System Info' page, use WP Site Health page instead. [Issue #862](https://github.com/PopupMaker/Popup-Maker/issues/862)
-* Improvement: Accessibility forced focus can now focus main close button if nothing else is available. [Issue #943](https://github.com/PopupMaker/Popup-Maker/issues/943)
-* Improvement: Updated admin form styles to match recent WP core changes. [Issue #707](https://github.com/PopupMaker/Popup-Maker/issues/707)
-* Fix: Block previews failed to load for some 3rd party blocks. [Issue #868](https://github.com/PopupMaker/Popup-Maker/issues/868). Thanks @ndiego
-* Fix: Bug preventing saving "Sitewide" cookie option unchecked. [Issue #642](https://github.com/PopupMaker/Popup-Maker/issues/642)
-* Fix: Removed Action Scheduler library due to edge case issues with no reasonable long term solutions. [Issue #853](https://github.com/PopupMaker/Popup-Maker/issues/853)
-* Fix: Update integration with Contact Form 7 due to breaking changes in their recent v5.4 update. [Issue #946](https://github.com/PopupMaker/Popup-Maker/issues/946)
-
-= v1.15.0 - 01/12/2021 =
-
-* Feature: Automatically enqueue popups when detected during page load [Issue $543](https://github.com/PopupMaker/Popup-Maker/issues/543)
-* Improvement: Improvements to 'Extend' page [Issue $913](https://github.com/PopupMaker/Popup-Maker/issues/913)
-* Improvement: Start working toward more consistent linking/documentation strategy
-* Fix: Popup defaults() method only returns default values for checkbox fields [Issue $927](https://github.com/PopupMaker/Popup-Maker/issues/927)
-* Fix: PUM_Telemetry triggers PHP warnings in (CLI) cron [Issue $919](https://github.com/PopupMaker/Popup-Maker/issues/919)
-* Fix: pum-admin-bar Script Fails to Load [Issue $907](https://github.com/PopupMaker/Popup-Maker/issues/907) Thanks @fluxism!
-* Fix: JS error: Uncaught TypeError: Cannot set property 'popups' of undefined [Issue $635](https://github.com/PopupMaker/Popup-Maker/issues/635)
-* Fix: Undefined SCSS variable causing errors in building block components
+- Tweak: Updated documentation links to use new docs site.
+- Fix: Popup title aria-labelledby attribute was being double-quoted. Thanks  to the [Equalize Digital](https://equalizedigital.com/) team.

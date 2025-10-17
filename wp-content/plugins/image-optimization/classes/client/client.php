@@ -3,13 +3,14 @@
 namespace ImageOptimization\Classes\Client;
 
 use ImageOptimization\Classes\Exceptions\Client_Exception;
+use ImageOptimization\Classes\File_Utils;
 use ImageOptimization\Classes\Image\Image;
-use ImageOptimization\Modules\Oauth\{
-	Classes\Data,
-	Components\Connect
-};
+use ImageOptimization\Classes\Logger;
 use ImageOptimization\Modules\Stats\Classes\Optimization_Stats;
+use Throwable;
 use WP_Error;
+
+use ImageOptimization\Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -20,7 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Client {
 	const BASE_URL = 'https://my.elementor.com/api/v2/image-optimizer/';
+	const BASE_URL_FEEDBACK = 'https://feedback-api.prod.apps.elementor.red/apps/api/v1/';
 	const STATUS_CHECK = 'status/check';
+	const SITE_INFO = 'site/info';
+	const SITE_INFO_TRANSIENT = 'image_optimizer_site_info_transient';
+
+
+	private bool $refreshed = false;
 
 	public static ?Client $instance = null;
 
@@ -35,8 +42,8 @@ class Client {
 		return self::$instance;
 	}
 
-	public static function get_site_info(): array {
-		return [
+	public static function get_site_info( $endpoint = null ): array {
+		$data = [
 			// Which API version is used.
 			'app_version' => IMAGE_OPTIMIZATION_VERSION,
 			// Which language to return.
@@ -45,9 +52,34 @@ class Client {
 			'site_url' => trailingslashit( home_url() ),
 			// current user
 			'local_id' => get_current_user_id(),
-			// Media library stats
-			'media_data' => base64_encode( wp_json_encode( self::get_request_stats() ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
 		];
+
+		if ( $endpoint !== self::STATUS_CHECK ) {
+			// Media library stats
+			$data['media_data'] = base64_encode( wp_json_encode( self::get_request_stats() ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get site info
+	 * @return mixed|WP_Error|null
+	 */
+	public static function get_subscription_info() {
+		$info = get_transient( self::SITE_INFO_TRANSIENT );
+		if ( ! $info ) {
+			try {
+				$info = self::get_instance()->make_request( 'POST', self::SITE_INFO );
+			} catch ( Throwable $t ) {
+				Logger::log( Logger::LEVEL_ERROR, 'Cannot get site info response from service: ' . $t->getMessage() );
+				return null;
+			}
+
+			set_transient( self::SITE_INFO_TRANSIENT, $info, ( 24 * 60 * 60 ) );
+		}
+		return $info;
 	}
 
 	private static function get_request_stats(): array {
@@ -78,7 +110,7 @@ class Client {
 			$this->is_connected() ? $this->generate_authentication_headers( $endpoint ) : []
 		);
 
-		$body = array_replace_recursive( $body, $this->get_site_info() );
+		$body = array_replace_recursive( $body, $this->get_site_info( $endpoint ) );
 
 		try {
 			if ( $file ) {
@@ -104,27 +136,48 @@ class Client {
 		return ( new Client_Response( $response ) )->handle();
 	}
 
+	public static function get_feedback_base_url() {
+		return apply_filters( 'image_optimizer_feedback_base_url', self::BASE_URL_FEEDBACK );
+	}
+
 	private static function get_remote_url( $endpoint ): string {
-		return self::BASE_URL . $endpoint;
+		$base_url = apply_filters( 'image_optimizer_client_get_base_url', self::BASE_URL );
+
+		if ( strpos( $endpoint, 'feedback/' ) !== false ) {
+			return self::get_feedback_base_url() . $endpoint;
+		}
+
+		return $base_url . $endpoint;
 	}
 
 	protected function is_connected(): bool {
-		return Connect::is_connected();
+		return Plugin::instance()->modules_manager->get_modules( 'connect-manager' )->connect_instance->is_connected();
 	}
 
 	protected function generate_authentication_headers( $endpoint ): array {
-		$headers = [
-			'data' => base64_encode(  // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-				wp_json_encode( [ 'app' => 'library' ] )
-			),
-			'endpoint' => $endpoint,
-			'access_token' => Data::get_access_token(),
-			'client_id' => Data::get_client_id(),
-		];
 
-		if ( Connect::is_activated() ) {
-			$headers['key'] = Data::get_activation_state();
+		$connect_instance = Plugin::instance()->modules_manager->get_modules( 'connect-manager' )->connect_instance;
+
+		if ( ! $connect_instance->get_is_connect_on_fly() ) {
+			$headers = [
+				'data' => base64_encode(  // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+					wp_json_encode( [ 'app' => 'library' ] )
+				),
+				'access_token' => $connect_instance->get_access_token() ?? '',
+				'client_id' => $connect_instance->get_client_id() ?? '',
+			];
+
+			if ( $connect_instance->is_activated() ) {
+				$headers['key'] = $connect_instance->get_activation_state() ?? '';
+			}
+		} else {
+			$headers = $this->add_bearer_token([
+				'x-elementor-apps-connect' => true,
+			]);
 		}
+
+		$headers['endpoint'] = $endpoint;
+		$headers['x-elementor-apps'] = 'image-optimizer';
 
 		return $headers;
 	}
@@ -164,7 +217,17 @@ class Client {
 			return new WP_Error( 422, 'Wrong Server Response' );
 		}
 
-		if ( 200 !== $response_code ) {
+		if ( Plugin::instance()->modules_manager->get_modules( 'connect-manager' )->connect_instance->get_is_connect_on_fly() ) {
+			// If the token is invalid, refresh it and try again once only.
+			if ( ! $this->refreshed && ! empty( $body->message ) && ( false !== strpos( $body->message, 'Invalid Token' ) ) ) {
+				Plugin::instance()->modules_manager->get_modules( 'connect-manager' )->connect_instance->refresh_token();
+				$this->refreshed = true;
+				$args['headers'] = $this->add_bearer_token( $args['headers'] );
+				return $this->request( $method, $endpoint, $args );
+			}
+		}
+
+		if ( ! in_array( $response_code, [ 200, 201 ], true ) ) {
 			// In case $as_array = true.
 			$message = $body->message ?? wp_remote_retrieve_response_message( $response );
 			$message = is_array( $message ) ? join( ', ', $message ) : $message;
@@ -174,6 +237,13 @@ class Client {
 		}
 
 		return $body;
+	}
+
+	public function add_bearer_token( $headers ) {
+		if ( $this->is_connected() ) {
+			$headers['Authorization'] = 'Bearer ' . Plugin::instance()->modules_manager->get_modules( 'connect-manager' )->connect_instance->get_access_token();
+		}
+		return $headers;
 	}
 
 	/**
@@ -186,7 +256,7 @@ class Client {
 	 *
 	 * @return string
 	 * @throws Client_Exception
-*/
+	 */
 	private function get_upload_request_body( array $body, $file, string $boundary, string $file_name = '' ): string {
 		$payload = '';
 		// add all body fields as standard POST fields:
@@ -205,7 +275,10 @@ class Client {
 		} else {
 			$image_mime = image_type_to_mime_type( exif_imagetype( $file ) );
 
-			if ( ! in_array( $image_mime, Image::get_supported_mime_types(), true ) ) {
+			if (
+				! in_array( $image_mime, Image::get_supported_mime_types(), true ) &&
+				( 'application/octet-stream' === $image_mime && 'avif' !== File_Utils::get_extension( $file ) )
+			) {
 				throw new Client_Exception( "Unsupported mime type `$image_mime`" );
 			}
 

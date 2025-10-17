@@ -12,9 +12,15 @@ class Module extends Module_Base {
 		return 'stats';
 	}
 
+	public static function component_list(): array {
+		return [
+			'Optimization_Stats_Handler',
+		];
+	}
 	public static function routes_list() : array {
 		return [
 			'Get_Stats',
+			'Get_Optimization_Details',
 		];
 	}
 
@@ -23,5 +29,6 @@ class Module extends Module_Base {
 	 */
 	public function __construct() {
 		$this->register_routes();
+		$this->register_components();
 	}
 }

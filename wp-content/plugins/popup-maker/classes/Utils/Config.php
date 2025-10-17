@@ -2,8 +2,8 @@
 /**
  * Config Utility
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -16,11 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PUM_Utils_Config {
 
 	/**
-	 * Config
+	 * Load configuration file
 	 *
-	 * @param $file_name
-	 *
-	 * @return mixed
+	 * @param string $file_name Configuration file name (without .php extension)
+	 * @return array<string, mixed> Configuration array or empty array if file not found
 	 */
 	public static function load( $file_name ) {
 

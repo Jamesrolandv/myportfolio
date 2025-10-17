@@ -57,10 +57,11 @@ class ControlSync {
 
 				case 'optimized':
 					const statsData = {
+						sizesTotal: imageData.stats.total_image_count,
 						sizesOptimized: imageData.stats.optimized_image_count,
 						saved: {
 							absolute: imageData.stats.initial_image_size - imageData.stats.current_image_size,
-							relative: Math.round( imageData.stats.current_image_size / imageData.stats.initial_image_size * 100 ),
+							relative: Math.max( 100 - Math.round( imageData.stats.current_image_size / imageData.stats.initial_image_size * 100 ), 0 ),
 						},
 					};
 

@@ -1,5 +1,90 @@
 == Changelog ==
 
+= 2.5.1 - SEP 16 2025 =
+- Added: New Installation Wizard for regular website template (demo) import.
+- Updated: Freemius SDK to version 2.12.2.
+- Improved: Customizer: Custom JS: Output sanitization.
+- Improved: Installation Wizard: Checkbox clicks extended to the entire wrapper.
+- Fixed: Widgets: Social Share: WhatsApp API URL.
+- Removed: Old Setup Wizard Files.
+
+= 2.5.0 - AUG 28 2025 =
+- Fixed: Potential vulnerability patched: Report by Wordfence from Aug 27th. Shoutout to the Wordfence team for the patch verification and confirmation.
+
+= 2.4.9 - JUN 2 2025 =
+- Fixed: Potential vulnerability patched: Report by Patchstack from MAY 26th 2025. Shoutout and a thanks to the Patchstack team for patch test and confirmation.
+
+= 2.4.8 - MAY 14 2025 =
+- NEW: Setup Wizard for new installations.
+- Updated: Preparations to remove old/previous Wizard files with next updates.
+- Updated: Preparations to add new regular site templates (demos) import with next updates.
+
+= 2.4.7 - APR 21 2025 =
+- Updated: Compatibility: WordPress version number.
+- Fixed: Potential vulnerability patched: Report by Wordfence from APR 11th 2025 (1/3).
+- Fixed: Potential vulnerability patched: Report by Wordfence from APR 11th 2025 (2/3).
+- Fixed: Potential vulnerability patched: Report by Wordfence from APR 11th 2025 (3/3).
+
+= 2.4.6 - APR 03 2025 =
+- Added: Ocean Extra version constant for future updates.
+- Updated: Ocean Extra Copyright information.
+
+= 2.4.5 - FEB 27 2025 =
+- Added: Codes for the upcoming plugin.
+- Added: Turnstile integration for Popup Login and Elementor Widgets.
+- Fixed: Freemius SDK: PHP 8+ Warning: strpos(): Passing null to parameter #1 ($haystack) of type string is deprecated.
+- Fixed: Freemius SDK: PHP 8+ Warning: str_replace(): Passing null to parameter #3 ($subject) of type array|string is deprecated.
+
+= 2.4.4 - JAN 27 2025 =
+- Added: Notice for OceanWP compatibility and min requirements for future releases.
+- Updated: Compatibility: Freemius SDK to version 2.11.0
+- Updated: Compatibility: WordPress version.
+
+= 2.4.3 - NOV 27 2024 =
+- Added: Compatibility: WordPress: Bottom margin styles for wp.components.SelectControl is deprecated since version 6.7 and will be removed in version 7.0.
+- Added: Compatibility: WordPress: Bottom margin styles for wp.components.BaseControl is deprecated since version 6.7 and will be removed in version 7.0.
+- Added: Compatibility: WordPress: Bottom margin styles for wp.components.TextControl is deprecated since version 6.7 and will be removed in version 7.0.
+- Fixed: Plugin installation error on some instances "Installation failed; Destination folder already exists.".
+- Fixed: Customizer: Site Preloader: Typo error for "Default Text".
+
+= 2.4.2 - OCT 29 2024 =
+- Updated: Freemius SDK: version 2.9.0
+- Updated: Compatibility: WordPress: version number.
+- Fixed: Customizer: New Customizer panels: not displayed on some instances utilizing a child theme.
+
+= 2.4.1 - OCT 21 2024 =
+- Fixed: OceanWP Metabox Settings: Logo: Customizer logo doesn't get overridden on individual level (main Customizer logo always displayed).
+- Fixed: OceanWP Customizer: General Options tab not displayed with OceanWP version 3.6.1 and lower.
+- Fixed: Plugin Update Notice: Breaking layout display in the plugins area on multisite.
+
+= 2.4.0 - OCT 16 2024 =
+- NEW: Customizer: Library upgraded to default WordPress ReactJS.
+- NEW: Customizer: User Interface.
+- Added: Customizer: Main panel icons for improved visual navigation and user experience.
+- Added: Customizer: Panel grouping based website role for improved visual navigation and user experience.
+- Added: OceanWP Panel: Customizer: New panels users can disable / enable per need for faster loading and visual navigation.
+- Removed: Customizer: Legacy PHP Controls.
+- Removed: OceanWP Panel: Customizer: Panels: Legacy panels.
+
+= 2.3.1 - OCT 11 2024 =
+- Added: Conditional checks for future updates.
+- Updated: Compatibility: WordPress version number.
+
+= 2.3.0 - JUL 03 2024 =
+- Fixed: Potential vulnerability patched: Report by Patchstack from June 25th 2024.
+Updated: WordPress version for compatibility.
+
+= 2.2.9 - JUN 05 2024 =
+- Fixed: Potential vulnerability patched: Wordfence report from Jun 3rd 2024. A special thanks goes towards the Wordfence team for doublechecking everything as always.
+- Fixed: WordPress Widgets: Flickr: if widget in use more than once on a page, images display with a single widget only.
+- Fixed: Customizer: Console error while Customizer in use: Store "core / interface" is already registered.
+
+= 2.2.8 - MAY 22 2024 =
+- Added: Additional support for the oceanwp_post_id() function.
+- Added: Support for new functionality for Ocean Hooks 2.1.1 version.
+- Updated: Freemius SDK to 2.7.2 version.
+- Updated: Compatibility: WordPress version.
+
 = 2.2.7 - APR 08 2024 =
 - Fixed: Potential vulnerability patched: Wordfence report from Apr 3rd 2024. A special thanks goes towards the Wordfence team for doublechecking everything as always.
 

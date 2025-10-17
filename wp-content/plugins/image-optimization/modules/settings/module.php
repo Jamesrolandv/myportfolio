@@ -2,7 +2,14 @@
 
 namespace ImageOptimization\Modules\Settings;
 
+use ImageOptimization\Classes\Image\Image_Conversion_Option;
 use ImageOptimization\Classes\Module_Base;
+use ImageOptimization\Modules\Settings\{
+	Banners\One_Million_Installs_Banner,
+	Banners\Sale_Banner,
+	Banners\Birthday_Banner,
+	Classes\Settings,
+};
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -47,14 +54,23 @@ class Module extends Module_Base {
 				'type' => 'boolean',
 				'default' => true,
 			],
-			'convert_to_webp' => [
-				'type' => 'boolean',
-				'default' => true,
+			'convert_to_format' => [
+				'type' => 'string',
+				'default' => Image_Conversion_Option::WEBP,
 			],
 			'custom_sizes' => [
 				'type' => 'string',
 				'default' => 'all',
 			],
+			'help_videos' => [
+				'type' => 'object',
+				'show_in_rest' => [
+					'schema' => [
+						'type' => 'object',
+						'additionalProperties' => true,
+					],
+				],
+			]
 		];
 	}
 
@@ -79,6 +95,10 @@ class Module extends Module_Base {
 
 	public function render_app() {
 		?>
+		<?php Sale_Banner::get_banner( 'https://go.elementor.com/io-bf-banner/' ); ?>
+		<?php One_Million_Installs_Banner::get_banner( 'https://go.elementor.com/io-1m-banner-upgrade/' ); ?>
+		<?php Birthday_Banner::get_banner( 'https://go.elementor.com/io-b-day-banner' ); ?>
+
 		<!-- The hack required to wrap WP notifications -->
 		<div class="wrap">
 			<h1 style="display: none;" role="presentation"></h1>
@@ -99,11 +119,36 @@ class Module extends Module_Base {
 		);
 	}
 
+	/**
+	 * The handler converts an old CONVERT_TO_WEBP option to the new CONVERT_TO_FORMAT option.
+	 * TODO: [Stability] Remove this fallback after all users updated
+	 *
+	 * @return void
+	 */
+	public function maybe_migrate_legacy_conversion_option() {
+		$legacy_convert_to_webp = get_option( Settings::CONVERT_TO_WEBP_OPTION_NAME, null );
+
+		if ( is_null( $legacy_convert_to_webp ) ) {
+			return;
+		}
+
+		if ( '1' === $legacy_convert_to_webp ) {
+			update_option( Settings::CONVERT_TO_FORMAT_OPTION_NAME, Image_Conversion_Option::WEBP, false );
+		}
+
+		if ( '0' === $legacy_convert_to_webp ) {
+			update_option( Settings::CONVERT_TO_FORMAT_OPTION_NAME, Image_Conversion_Option::ORIGINAL, false );
+		}
+
+		delete_option( Settings::CONVERT_TO_WEBP_OPTION_NAME );
+	}
+
 	public function __construct() {
 		$this->register_components();
 
 		add_action( 'admin_init', [ $this, 'register_options' ] );
 		add_action( 'rest_api_init', [ $this, 'register_options' ] );
+		add_action( 'admin_init', [ $this, 'maybe_migrate_legacy_conversion_option' ] );
 		add_action( 'admin_menu', [ $this, 'register_page' ] );
 	}
 }

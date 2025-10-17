@@ -1,27 +1,29 @@
 <?php
 namespace ImageOptimization\Modules\Core;
 
-use ImageOptimization\Modules\Oauth\{
-	Classes\Data,
-	Components\Connect,
-	Rest\Activate,
-	Rest\Connect_Init,
-	Rest\Deactivate,
-	Rest\Disconnect,
-	Rest\Get_Subscriptions,
-};
 use ImageOptimization\Modules\Optimization\{
+	Classes\Validate_Image,
 	Rest\Cancel_Bulk_Optimization,
 	Rest\Optimize_Bulk,
 };
+use ImageOptimization\Modules\Settings\Classes\Settings;
 use ImageOptimization\Modules\Backups\Rest\{
 	Restore_All,
 	Remove_Backups,
 };
 use ImageOptimization\Classes\{
+	Async_Operation\Async_Operation,
+	Async_Operation\Async_Operation_Queue,
+	Async_Operation\Queries\Operation_Query,
+	Image\Image_Meta,
+	Image\Image_Optimization_Error_Type,
+	Image\Image_Status,
+	Migration\Migration_Manager,
 	Module_Base,
 	Utils,
 };
+
+use ImageOptimization\Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -35,8 +37,12 @@ class Module extends Module_Base {
 	public static function component_list() : array {
 		return [
 			'Pointers',
+			'Migrations',
 			'Conflicts',
 			'User_Feedback',
+			'Not_Connected',
+			'Not_Connected_Modal',
+			'Renewal_Notice',
 		];
 	}
 
@@ -54,7 +60,11 @@ class Module extends Module_Base {
 	}
 
 	public function maybe_add_quota_reached_notice() {
-		if ( ! Connect::is_activated() || Data::images_left() > 0 ) {
+
+		// @var ImageOptimizer/Modules/ConnectManager/Module
+		$module = Plugin::instance()->modules_manager->get_modules( 'connect-manager' );
+
+		if ( ! $module->connect_instance->get_connect_status() || $module->connect_instance->images_left() > 0 ) {
 			return;
 		}
 
@@ -74,12 +84,93 @@ class Module extends Module_Base {
 						'image-optimization'
 					); ?>
 
-					<a href="https://go.elementor.com/io-panel-upgrade/">
+					<a href="https://go.elementor.com/io-quota-upgrade/">
 						<?php esc_html_e(
 							'Upgrade plan now',
 							'image-optimization'
 						); ?>
 					</a>
+				</span>
+			</p>
+		</div>
+		<?php
+	}
+
+	public function maybe_add_80_quota_reached_notice() {
+
+		// @var ImageOptimizer/Modules/ConnectManager/Module
+		$module = Plugin::instance()->modules_manager->get_modules( 'connect-manager' );
+
+		$connect_status = $module->connect_instance->get_connect_status();
+
+		if ( ! isset( $connect_status->quota ) && ! isset( $connect_status->used_quota ) ) {
+			return;
+		}
+
+		$usage = $connect_status->used_quota / $connect_status->quota * 100;
+
+		if ( ! $module->connect_instance->get_connect_status() || ( $usage < 80 || $usage === 100 ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-warning notice image-optimizer__notice image-optimizer__notice--warning">
+			<p>
+				<b>
+					<?php esc_html_e(
+						'You’ve used 80% of your plan quota.',
+						'image-optimization'
+					); ?>
+				</b>
+
+				<span>
+					<?php esc_html_e(
+						'Upgrade now to avoid interruptions.',
+						'image-optimization'
+					); ?>
+
+					<a href="https://go.elementor.com/io-quota-upgrade/">
+						<?php esc_html_e(
+							'Upgrade plan now',
+							'image-optimization'
+						); ?>
+					</a>
+				</span>
+			</p>
+		</div>
+		<?php
+	}
+
+	public function maybe_add_url_mismatch_notice() {
+		// @var ImageOptimizer/Modules/ConnectManager/Module
+		$module = Plugin::instance()->modules_manager->get_modules( 'connect-manager' );
+
+		if ( $module->connect_instance->is_valid_home_url() ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-error notice image-optimizer__notice image-optimizer__notice--error">
+			<p>
+				<b>
+					<?php esc_html_e(
+						'Your license key does not match your current domain, causing a mismatch.',
+						'image-optimization'
+					); ?>
+				</b>
+
+				<span>
+					<?php esc_html_e(
+						'This is most likely due to a change in the domain URL of your site (including HTTP/SSL migration).',
+						'image-optimization'
+					); ?>
+
+					<button type="button" onclick="document.dispatchEvent( new Event( 'image-optimizer/auth/url-mismatch-modal/open' ) );">
+						<?php esc_html_e(
+							'Fix mismatched URL',
+							'image-optimization'
+						); ?>
+					</button>
 				</span>
 			</p>
 		</div>
@@ -97,12 +188,23 @@ class Module extends Module_Base {
 				admin_url( 'admin.php?page=' . \ImageOptimization\Modules\Settings\Module::SETTING_BASE_SLUG ),
 				esc_html__( 'Settings', 'image-optimization' )
 			),
-			'upgrade' => sprintf(
-				'<a href="%s" style="color: #524CFF; font-weight: 700;" target="_blank" rel="noopener noreferrer">%s</a>',
-				'https://go.elementor.com/io-panel-upgrade/',
-				esc_html__( 'Upgrade', 'image-optimization' )
-			),
 		];
+		// @var ImageOptimizer/Modules/ConnectManager/Module
+		$module = Plugin::instance()->modules_manager->get_modules( 'connect-manager' );
+
+		if ( $module->connect_instance->is_connected() ) {
+			$custom_links['upgrade'] = sprintf(
+				'<a href="%s" style="color: #524CFF; font-weight: 700;" target="_blank" rel="noopener noreferrer">%s</a>',
+				'https://go.elementor.com/io-plugins-upgrade/',
+				esc_html__( 'Upgrade', 'image-optimization' )
+			);
+		} else {
+			$custom_links['connect'] = sprintf(
+				'<a href="%s" style="color: #524CFF; font-weight: 700;">%s</a>',
+				admin_url( 'admin.php?page=' . \ImageOptimization\Modules\Settings\Module::SETTING_BASE_SLUG ),
+				esc_html__( 'Connect', 'image-optimization' )
+			);
+		}
 
 		return array_merge( $custom_links, $links );
 	}
@@ -151,27 +253,40 @@ class Module extends Module_Base {
 			]
 		);
 
-		$connect_data = Data::get_connect_data();
+		/**
+		 * @var ImageOptimizer\Modules\ConnectManager\Module $module
+		 */
+		$module = Plugin::instance()->modules_manager->get_modules( 'connect-manager' );
+		$is_connect_on_fly = $module->connect_instance->get_is_connect_on_fly();
+		$connect_email = $module->connect_instance->get_connect_data()['user']['email'] ?? null;
+		$show_reset = ! $module->connect_instance->is_connected()
+							&& ( $module->connect_instance->get_client_id() || $module->connect_instance->get_client_secret() );
 
 		wp_localize_script(
 			'image-optimization-admin',
 			'imageOptimizerUserData',
 			[
-				'isConnected' => Connect::is_connected(),
-				'isActivated' => Connect::is_activated(),
-				'planData' => Connect::is_activated() ? Connect::get_connect_status() : null,
-				'licenseKey' => Connect::is_activated() ? Data::get_activation_state() : null,
-				'imagesLeft' => Connect::is_activated() ? Data::images_left() : null,
-				'isOwner' => Connect::is_connected() ? Data::user_is_subscription_owner() : null,
-				'subscriptionEmail' => $connect_data['user']['email'] ?? null,
+				'isConnectOnFly' => $is_connect_on_fly,
+				'isConnected' => $module->connect_instance->is_connected(),
+				'isActivated' => $module->connect_instance->is_activated(),
+				'isUrlMismatch' => ! $module->connect_instance->is_valid_home_url(),
+				'planData' => $module->connect_instance->is_activated() ? $module->connect_instance->get_connect_status() : null,
+				'licenseKey' => $module->connect_instance->is_activated() ? $module->connect_instance->get_activation_state() : null,
+				'imagesLeft' => $module->connect_instance->is_activated() ? $module->connect_instance->images_left() : null,
+				'isOwner' => $module->connect_instance->is_connected() ? $module->connect_instance->user_is_subscription_owner() : null,
+				'subscriptionEmail' => $connect_email ? $connect_email : null,
+				'showResetButton' => $show_reset,
+				'maxFileSize' => Validate_Image::get_max_file_size(),
+				'helpVideos' => Settings::get( Settings::HELP_VIDEOS ),
 
 				'wpRestNonce' => wp_create_nonce( 'wp_rest' ),
 				'disconnect' => wp_create_nonce( 'wp_rest' ),
-				'authInitNonce' => wp_create_nonce( Connect_Init::NONCE_NAME ),
-				'authDisconnectNonce' => wp_create_nonce( Disconnect::NONCE_NAME ),
-				'authDeactivateNonce' => wp_create_nonce( Deactivate::NONCE_NAME ),
-				'authGetSubscriptionsNonce' => wp_create_nonce( Get_Subscriptions::NONCE_NAME ),
-				'authActivateNonce' => wp_create_nonce( Activate::NONCE_NAME ),
+				'authInitNonce' => wp_create_nonce( $module->connect_instance->connect_init_nonce() ),
+				'authDisconnectNonce' => wp_create_nonce( $module->connect_instance->disconnect_nonce() ),
+				'authDeactivateNonce' => wp_create_nonce( $module->connect_instance->deactivate_nonce() ),
+				'authGetSubscriptionsNonce' => wp_create_nonce( $module->connect_instance->get_subscriptions_nonce() ),
+				'authActivateNonce' => wp_create_nonce( $module->connect_instance->activate_nonce() ),
+				'versionNonce' => wp_create_nonce( $module->connect_instance->version_nonce() ),
 				'removeBackupsNonce' => wp_create_nonce( Remove_Backups::NONCE_NAME ),
 				'restoreAllImagesNonce' => wp_create_nonce( Restore_All::NONCE_NAME ),
 				'optimizeBulkNonce' => wp_create_nonce( Optimize_Bulk::NONCE_NAME ),
@@ -186,11 +301,100 @@ class Module extends Module_Base {
 		return ( Utils::is_media_page() || Utils::is_plugin_page() ) && Utils::user_is_admin();
 	}
 
+	public static function on_deactivation(): void {
+		$optimization_query = ( new Operation_Query() )
+			->set_queue( Async_Operation_Queue::OPTIMIZE )
+			->set_status( [ Async_Operation::OPERATION_STATUS_PENDING, Async_Operation::OPERATION_STATUS_RUNNING ] )
+			->set_limit( -1 );
+
+		$restoring_query = ( new Operation_Query() )
+			->set_queue( Async_Operation_Queue::RESTORE )
+			->set_status( [ Async_Operation::OPERATION_STATUS_PENDING, Async_Operation::OPERATION_STATUS_RUNNING ] )
+			->set_limit( -1 );
+
+		$optimization_operations = Async_Operation::get( $optimization_query );
+		$restoring_operations = Async_Operation::get( $restoring_query );
+
+		foreach ( $optimization_operations as $operation ) {
+			$image_id = $operation->get_args()['attachment_id'];
+
+			if ( ! $image_id ) {
+				continue;
+			}
+
+			Async_Operation::remove( [ $operation->get_id() ] );
+
+			$image_meta = new Image_Meta( $image_id );
+
+			if ( empty( $image_meta->get_optimized_sizes() ) ) {
+				$image_meta->delete();
+			} else {
+				$image_meta
+					->set_status( Image_Status::OPTIMIZATION_FAILED )
+					->set_error_type( Image_Optimization_Error_Type::PLUGIN_DEACTIVATION )
+					->save();
+			}
+		}
+
+		foreach ( $restoring_operations as $operation ) {
+			$image_id = $operation->get_args()['attachment_id'];
+
+			if ( ! $image_id ) {
+				continue;
+			}
+
+			Async_Operation::remove( [ $operation->get_id() ] );
+
+			$image_meta = new Image_Meta( $image_id );
+
+			$image_meta
+				->set_status( Image_Status::RESTORING_FAILED )
+				->set_error_type( Image_Optimization_Error_Type::PLUGIN_DEACTIVATION )
+				->save();
+		}
+	}
+
+	/**
+	 * Renders the Bulk Optimization link on the media pages.
+	 *
+	 * @return void
+	 */
+	public function add_bulk_optimization_links(): void {
+		$page_url = add_query_arg(
+			[ 'page' => 'image-optimization-bulk-optimization' ],
+			admin_url( 'upload.php' )
+		);
+
+		?>
+		<script>
+			document.addEventListener( 'DOMContentLoaded', function () {
+				// Grid media is rendered by JS, so the timeout is required
+				setTimeout( () => {
+					const targetButton = document.querySelector( '.filter-items .actions input[type=submit]' ) ||
+						document.querySelector( '.media-toolbar-secondary .select-mode-toggle-button' );
+
+					if ( targetButton ) {
+						const link = document.createElement('a');
+
+						link.href = '<?php echo esc_js( $page_url ); ?>';
+						link.innerText = '<?php echo esc_js( __( 'Bulk Optimization', 'image-optimization' ) ); ?>';
+						link.className = 'button is-primary image-optimizer__button image-optimizer__button--pink';
+
+						targetButton.insertAdjacentElement( 'afterend', link );
+					}
+				}, 100 )
+			} );
+		</script>
+		<?php
+	}
+
 	/**
 	 * Module constructor.
 	 */
 	public function __construct() {
 		$this->register_components();
+
+		add_action( 'action_scheduler_init', [ Migration_Manager::class, 'init' ] );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_global_assets' ] );
 		add_filter( 'plugin_action_links', [ $this, 'add_plugin_links' ], 10, 2 );
@@ -201,6 +405,8 @@ class Module extends Module_Base {
 			}
 
 			add_action( 'admin_notices', [ $this, 'maybe_add_quota_reached_notice' ] );
+			add_action( 'admin_notices', [ $this, 'maybe_add_80_quota_reached_notice' ] );
+			add_action( 'admin_notices', [ $this, 'maybe_add_url_mismatch_notice' ] );
 
 			if ( Utils::is_media_page() ) {
 				add_action('in_admin_header', function () {
@@ -221,6 +427,10 @@ class Module extends Module_Base {
 			add_action('admin_enqueue_scripts', function () {
 				$this->enqueue_scripts();
 			});
+
+			if ( Utils::is_media_page() ) {
+				add_action( 'admin_enqueue_scripts', [ $this, 'add_bulk_optimization_links' ] );
+			}
 		});
 	}
 }

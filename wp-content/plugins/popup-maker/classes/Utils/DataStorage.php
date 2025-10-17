@@ -2,8 +2,8 @@
 /**
  * DataStorage Utility
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,18 +20,21 @@ class PUM_Utils_DataStorage {
 	 *
 	 * Given a key, get the information from the database directly.
 	 *
-	 * @param string     $key The stored option key.
-	 * @param null|mixed $default Optional. A default value to retrieve should `$value` be empty.
-	 *                            Default null.
+	 * @template T
+	 * @param string $key The stored option key.
+	 * @param T      $default_value Optional. A default value to retrieve should `$value` be empty.
+	 *                                 Default null.
 	 *
-	 * @return mixed|false The stored data, value of `$default` if not null, otherwise false.
+	 * @return ($default_value is null ? string|int|float|bool|array<string, mixed>|object|false : T|string|int|float|bool|array<string, mixed>|object) The stored data, value of `$default_value` if not null, otherwise false.
 	 */
-	public static function get( $key, $default = null ) {
+	public static function get( $key, $default_value = null ) {
 		global $wpdb;
-		$value = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = '%s'", $key ) );
 
-		if ( empty( $value ) && ! is_null( $default ) ) {
-			return $default;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		$value = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", $key ) );
+
+		if ( empty( $value ) && ! is_null( $default_value ) ) {
+			return $default_value;
 		}
 
 		return empty( $value ) ? false : maybe_unserialize( $value );
@@ -42,6 +45,8 @@ class PUM_Utils_DataStorage {
 	 *
 	 * @param string $key The option_name.
 	 * @param mixed  $value The value to store.
+	 *
+	 * @return void
 	 */
 	public static function write( $key, $value ) {
 		global $wpdb;
@@ -56,6 +61,7 @@ class PUM_Utils_DataStorage {
 
 		$formats = self::get_data_formats( $value );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		$wpdb->replace( $wpdb->options, $data, $formats );
 	}
 
@@ -64,7 +70,7 @@ class PUM_Utils_DataStorage {
 	 *
 	 * @param mixed $value Value to store.
 	 *
-	 * @return array Formats array. First and last values will always be string ('%s').
+	 * @return array{0: '%s', 1: '%s'|'%d'|'%f', 2: '%s'} Formats array. First and last values will always be string ('%s').
 	 */
 	public static function get_data_formats( $value ) {
 
@@ -96,6 +102,7 @@ class PUM_Utils_DataStorage {
 	public static function delete( $key ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 		return $wpdb->delete( $wpdb->options, [ 'option_name' => $key ] );
 	}
 
@@ -111,14 +118,12 @@ class PUM_Utils_DataStorage {
 
 		// Double check to make sure the batch_id got included before proceeding.
 		if ( '^[0-9a-z\\_]+' !== $pattern && ! empty( $pattern ) ) {
-			$query = "DELETE FROM $wpdb->options WHERE option_name REGEXP %s";
-
-			$result = $wpdb->query( $wpdb->prepare( $query, $pattern ) );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+			$result = $wpdb->query( $wpdb->prepare( "DELETE FROM $wpdb->options WHERE option_name REGEXP %s", $pattern ) );
 		} else {
 			$result = false;
 		}
 
 		return $result;
 	}
-
 }

@@ -2,8 +2,8 @@
 /**
  * Array Utility
  *
- * @package   PUM
- * @copyright Copyright (c) 2023, Code Atlantic LLC
+ * @package   PopupMaker
+ * @copyright Copyright (c) 2024, Code Atlantic LLC
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -20,36 +20,35 @@ class PUM_Utils_Array {
 	/**
 	 * Filters out null values.
 	 *
-	 * @param array $array
-	 *
-	 * @return array
+	 * @param array<mixed> $arr
+	 * @return array<mixed>
 	 */
-	public static function filter_null( $array = [] ) {
-		return array_filter( $array, [ __CLASS__, '_filter_null' ] );
+	public static function filter_null( $arr = [] ) {
+		return array_filter( $arr, [ __CLASS__, 'filter_null_callback' ] );
 	}
 
 	/**
-	 * @param null $val
+	 * Callback for filtering null values.
 	 *
+	 * @param mixed $val
 	 * @return bool
 	 */
-	public static function _filter_null( $val = null ) {
+	public static function filter_null_callback( $val = null ) {
 		return isset( $val );
 	}
 
 	/**
 	 * Clean variables using sanitize_text_field.
 	 *
-	 * @param $var
-	 *
-	 * @return array|string
+	 * @param array<string, mixed>|string $str_or_arr
+	 * @return array<string, mixed>|string
 	 */
-	public static function sanitize( $var ) {
-		if ( is_string( $var ) ) {
-			return sanitize_text_field( $var );
+	public static function sanitize( $str_or_arr ) {
+		if ( is_string( $str_or_arr ) ) {
+			return sanitize_text_field( $str_or_arr );
 		}
 
-		return array_map( [ __CLASS__, 'sanitize' ], (array) $var );
+		return array_map( [ __CLASS__, 'sanitize' ], (array) $str_or_arr );
 	}
 
 	/**
@@ -76,11 +75,10 @@ class PUM_Utils_Array {
 	 * PUM_Utils_Array::move_item($arr, 'a', 0, 'd'); //Swap ['a'] with ['d']
 	 * PUM_Utils_Array::move_item($arr, 'a', 'swap', 'd'); //Swap ['a'] with ['d']
 	 *
-	 * @param array       $ref_arr
-	 * @param string      $key1
-	 * @param int|string  $move
-	 * @param string|null $key2
-	 *
+	 * @param array<string, mixed> $ref_arr
+	 * @param string               $key1
+	 * @param int|string           $move
+	 * @param string|null          $key2
 	 * @return bool
 	 */
 	public static function move_item( &$ref_arr, $key1, $move, $key2 = null ) {
@@ -96,8 +94,9 @@ class PUM_Utils_Array {
 
 		$i = 0;
 		foreach ( $arr as &$val ) {
+			++$i;
 			$val = [
-				'sort' => ( ++ $i * 10 ),
+				'sort' => ( $i * 10 ),
 				'val'  => $val,
 			];
 		}
@@ -152,182 +151,205 @@ class PUM_Utils_Array {
 	/**
 	 * Pluck all array keys beginning with string.
 	 *
-	 * @param array             $array
-	 * @param bool|string|array $strings
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param bool|string|string[] $strings
+	 * @return array<string, mixed>
 	 */
-	public static function pluck_keys_starting_with( $array, $strings = [] ) {
-		$to_be_removed = self::remove_keys_starting_with( $array, $strings );
+	public static function pluck_keys_starting_with( $arr, $strings = [] ) {
+		$to_be_removed = self::remove_keys_starting_with( $arr, $strings );
 
-		return array_diff_key( $array, $to_be_removed );
+		return array_diff_key( $arr, $to_be_removed );
 	}
 
 	/**
 	 * Pluck all array keys ending with string.
 	 *
-	 * @param array             $array
-	 * @param bool|string|array $strings
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param bool|string|string[] $strings
+	 * @return array<string, mixed>
 	 */
-	public static function pluck_keys_ending_with( $array, $strings = [] ) {
-		$to_be_removed = self::remove_keys_ending_with( $array, $strings );
+	public static function pluck_keys_ending_with( $arr, $strings = [] ) {
+		$to_be_removed = self::remove_keys_ending_with( $arr, $strings );
 
-		return array_diff_key( $array, $to_be_removed );
+		return array_diff_key( $arr, $to_be_removed );
 	}
 
 	/**
 	 * Extract only allowed keys from an array.
 	 *
-	 * @param array    $array Array to be extracted from.
-	 * @param string[] $allowed_keys List of keys.
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr Array to be extracted from.
+	 * @param string[]             $allowed_keys List of keys.
+	 * @return array<string, mixed>
 	 */
-	public static function allowed_keys( $array, $allowed_keys = [] ) {
-		return array_intersect_key( $array, array_flip( $allowed_keys ) );
+	public static function allowed_keys( $arr, $allowed_keys = [] ) {
+		return array_intersect_key( $arr, array_flip( $allowed_keys ) );
 	}
 
 	/**
 	 * This works exactly the same as wp_parse_args, except we remove unused keys for sanitization.
 	 *
-	 * @param array $array Array to be parsed.
-	 * @param array $allowed_args Array of key=>defaultValue pairs for each allowed argument.
+	 * @param array<string, mixed> $arr Array to be parsed.
+	 * @param array<string, mixed> $allowed_args Array of key=>defaultValue pairs for each allowed argument.
 	 *
-	 * @return array
+	 * @return array<string, mixed>
 	 */
-	public static function parse_allowed_args( $array, $allowed_args = [] ) {
-		$array = wp_parse_args( $array, $allowed_args );
+	public static function parse_allowed_args( $arr, $allowed_args = [] ) {
+		$arr = wp_parse_args( $arr, $allowed_args );
 
-		return self::allowed_keys( $array, array_keys( $allowed_args ) );
+		return self::allowed_keys( $arr, array_keys( $allowed_args ) );
 	}
 
 	/**
 	 * Pluck specified array keys.
 	 *
-	 * @param array    $array
-	 * @param string[] $keys
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param string[]             $keys
+	 * @return array<string, mixed>
 	 */
-	public static function pluck( $array, $keys = [] ) {
-		return self::pluck_keys_containing( $array, $keys );
+	public static function pluck( $arr, $keys = [] ) {
+		// Convert objects to arrays to prevent fatal errors.
+		if ( is_object( $arr ) ) {
+			$arr = (array) $arr;
+		}
+
+		// Return empty array if input is not array-like.
+		if ( ! is_array( $arr ) ) {
+			return [];
+		}
+
+		return self::pluck_keys_containing( $arr, $keys );
 	}
 
 	/**
 	 * Pluck all array keys containing a string or strings.
 	 *
-	 * @param array    $array
-	 * @param string[] $strings
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param string[]             $strings
+	 * @return array<string, mixed>
 	 */
-	public static function pluck_keys_containing( $array, $strings = [] ) {
-		$to_be_removed = self::remove_keys_containing( $array, $strings );
+	public static function pluck_keys_containing( $arr, $strings = [] ) {
+		// Convert objects to arrays to prevent fatal errors.
+		if ( is_object( $arr ) ) {
+			$arr = (array) $arr;
+		}
 
-		return array_diff_key( $array, $to_be_removed );
+		// Return empty array if input is not array-like.
+		if ( ! is_array( $arr ) ) {
+			return [];
+		}
+
+		$to_be_removed = self::remove_keys_containing( $arr, $strings );
+
+		return array_diff_key( $arr, $to_be_removed );
 	}
 
 	/**
 	 * Remove all array keys beginning with string.
 	 *
-	 * @param array    $array
-	 * @param string[] $strings
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param bool|string|string[] $strings
+	 * @return array<string, mixed>
 	 */
-	public static function remove_keys_starting_with( $array, $strings = [] ) {
+	public static function remove_keys_starting_with( $arr, $strings = [] ) {
 		if ( ! $strings ) {
-			return $array;
+			return $arr;
 		}
 
 		if ( ! is_array( $strings ) ) {
 			$strings = [ $strings ];
 		}
 
-		foreach ( $array as $key => $value ) {
+		foreach ( $arr as $key => $value ) {
 			foreach ( $strings as $string ) {
-				if ( strpos( $key, $string ) === 0 ) {
-					unset( $array[ $key ] );
+				if ( is_string( $string ) && strpos( (string) $key, $string ) === 0 ) {
+					unset( $arr[ $key ] );
 				}
 			}
 		}
 
-		return $array;
+		return $arr;
 	}
 
 	/**
 	 * Remove all array keys ending with string.
 	 *
-	 * @param array             $array
-	 * @param bool|string|array $strings
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param bool|string|string[] $strings
+	 * @return array<string, mixed>
 	 */
-	public static function remove_keys_ending_with( $array, $strings = [] ) {
+	public static function remove_keys_ending_with( $arr, $strings = [] ) {
 		if ( ! $strings ) {
-			return $array;
+			return $arr;
 		}
 
 		if ( ! is_array( $strings ) ) {
 			$strings = [ $strings ];
 		}
 
-		foreach ( $array as $key => $value ) {
+		foreach ( $arr as $key => $value ) {
 			foreach ( $strings as $string ) {
-				$length = strlen( $string );
+				if ( is_string( $string ) ) {
+					$length = strlen( $string );
 
-				if ( substr( $key, - $length ) === $string ) {
-					unset( $array[ $key ] );
+					if ( substr( $key, - $length ) === $string ) {
+						unset( $arr[ $key ] );
+					}
 				}
 			}
 		}
 
-		return $array;
+		return $arr;
 	}
 
 	/**
 	 * Remove all array keys containing string.
 	 *
-	 * @param array             $array
-	 * @param bool|string|array $strings
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param bool|string|string[] $strings
+	 * @return array<string, mixed>
 	 */
-	public static function remove_keys_containing( $array, $strings = [] ) {
+	public static function remove_keys_containing( $arr, $strings = [] ) {
 
 		if ( ! $strings ) {
-			return $array;
+			return $arr;
+		}
+
+		// Convert objects to arrays to prevent fatal errors.
+		if ( is_object( $arr ) ) {
+			$arr = (array) $arr;
+		}
+
+		// Return input unchanged if not array-like.
+		if ( ! is_array( $arr ) ) {
+			return $arr;
 		}
 
 		if ( ! is_array( $strings ) ) {
 			$strings = [ $strings ];
 		}
 
-		foreach ( $array as $key => $value ) {
+		foreach ( $arr as $key => $value ) {
 			foreach ( $strings as $string ) {
-				if ( strpos( $key, $string ) !== false ) {
-					unset( $array[ $key ] );
+				if ( is_string( $string ) && strpos( (string) $key, $string ) !== false ) {
+					unset( $arr[ $key ] );
 				}
 			}
 		}
 
-		return $array;
+		return $arr;
 	}
 
 	/**
-	 * Remove all array keys containing string.
+	 * Remove specific array keys.
 	 *
-	 * @param array        $array
-	 * @param string|array $keys
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param string|string[]      $keys
+	 * @return array<string, mixed>
 	 */
-	public static function remove_keys( $array, $keys = [] ) {
+	public static function remove_keys( $arr, $keys = [] ) {
 
 		if ( empty( $keys ) ) {
-			return $array;
+			return $arr;
 		}
 
 		if ( is_string( $keys ) ) {
@@ -335,68 +357,67 @@ class PUM_Utils_Array {
 		}
 
 		foreach ( (array) $keys as $key ) {
-			if ( is_string( $key ) && array_key_exists( $key, $array ) ) {
-				unset( $array[ $key ] );
+			if ( is_string( $key ) && array_key_exists( $key, $arr ) ) {
+				unset( $arr[ $key ] );
 			}
 		}
 
-		return $array;
+		return $arr;
 	}
 
 	/**
 	 * Sort nested arrays with various options.
 	 *
-	 * @param array  $array
-	 * @param string $type
-	 * @param bool   $reverse
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param string               $type
+	 * @param bool                 $reverse
+	 * @return array<string, mixed>
 	 */
-	public static function sort( $array = [], $type = 'key', $reverse = false ) {
-		if ( ! is_array( $array ) ) {
-			return $array;
+	public static function sort( $arr = [], $type = 'key', $reverse = false ) {
+		if ( ! is_array( $arr ) ) {
+			return $arr;
 		}
 
 		switch ( $type ) {
 			case 'key':
 				if ( ! $reverse ) {
-					ksort( $array );
+					ksort( $arr );
 				} else {
-					krsort( $array );
+					krsort( $arr );
 				}
 				break;
 
 			case 'natural':
-				natsort( $array );
+				natsort( $arr );
 				break;
 
 			case 'priority':
 				if ( ! $reverse ) {
-					uasort( $array, [ __CLASS__, 'sort_by_priority' ] );
+					uasort( $arr, [ __CLASS__, 'sort_by_priority' ] );
 				} else {
-					uasort( $array, [ __CLASS__, 'rsort_by_priority' ] );
+					uasort( $arr, [ __CLASS__, 'rsort_by_priority' ] );
 				}
 				break;
 		}
 
-		return $array;
+		return $arr;
 	}
 
 	/**
-	 * @param $a
-	 * @param $b
+	 * @param array{sort: int, val: mixed} $a
+	 * @param array{sort: int, val: mixed} $b
 	 *
-	 * @return bool
+	 * @return int
 	 */
 	public static function sort_by_sort( $a, $b ) {
-		return $a['sort'] > $b['sort'];
+		return $a['sort'] <=> $b['sort'];
 	}
 
 	/**
 	 * Sort array by priority value
 	 *
-	 * @param $a
-	 * @param $b
+	 * @param array<string, mixed> $a
+	 * @param array<string, mixed> $b
 	 *
 	 * @return int
 	 */
@@ -414,8 +435,8 @@ class PUM_Utils_Array {
 	/**
 	 * Sort array in reverse by priority value
 	 *
-	 * @param $a
-	 * @param $b
+	 * @param array<string, mixed> $a
+	 * @param array<string, mixed> $b
 	 *
 	 * @return int
 	 */
@@ -431,36 +452,37 @@ class PUM_Utils_Array {
 	}
 
 	/**
-	 * Replace array key with new key name in same order
+	 * Replace array key with new key name in same order.
 	 *
-	 * @param $array
-	 * @param $old_key
-	 * @param $new_key
-	 *
-	 * @return array
+	 * @param array<string, mixed> $arr
+	 * @param string               $old_key
+	 * @param string               $new_key
+	 * @return array<string, mixed>|false
 	 */
-	public static function replace_key( $array, $old_key, $new_key ) {
-		$keys = array_keys( $array );
-		if ( false === $index = array_search( $old_key, $keys, true ) ) {
+	public static function replace_key( $arr, $old_key, $new_key ) {
+		$keys  = array_keys( $arr );
+		$index = array_search( $old_key, $keys, true );
+
+		if ( false === $index ) {
 			// throw new \Exception( sprintf( 'Key "%s" does not exit', $old_key ) );
 		}
+
 		$keys[ $index ] = $new_key;
 
-		return array_combine( $keys, array_values( $array ) );
+		return array_combine( $keys, array_values( $arr ) );
 	}
 
 	/**
 	 * Converts 'false' & 'true' string values in any array to proper boolean values.
 	 *
-	 * @param array|mixed $data
-	 *
-	 * @return array|mixed
+	 * @param array<string, mixed>|mixed $data
+	 * @return array<string, mixed>|mixed
 	 */
 	public static function fix_json_boolean_values( $data ) {
 
 		if ( is_array( $data ) ) {
 			foreach ( (array) $data as $key => $value ) {
-				if ( is_string( $value ) && in_array( $value, [ 'true', 'false' ] ) ) {
+				if ( is_string( $value ) && in_array( $value, [ 'true', 'false' ], true ) ) {
 					$data[ $key ] = json_decode( $value );
 				} elseif ( is_array( $value ) ) {
 					$data[ $key ] = self::fix_json_boolean_values( $value );
@@ -472,9 +494,10 @@ class PUM_Utils_Array {
 	}
 
 	/**
-	 * @param $obj
+	 * Convert object to array recursively.
 	 *
-	 * @return array
+	 * @param mixed $obj
+	 * @return array<string, mixed>|mixed
 	 */
 	public static function from_object( $obj ) {
 		if ( is_object( $obj ) ) {
@@ -493,43 +516,42 @@ class PUM_Utils_Array {
 	}
 
 	/**
-	 * @param $array
+	 * Safely decode JSON string to array.
 	 *
-	 * @return array
+	 * @param mixed $arr
+	 * @return array<string, mixed>
 	 */
-	public static function safe_json_decode( $array ) {
-		if ( ! empty( $array ) && is_string( $array ) ) {
-			if ( strpos( $array, '\"' ) >= 0 ) {
-				$array = stripslashes( $array );
+	public static function safe_json_decode( $arr ) {
+		if ( ! empty( $arr ) && is_string( $arr ) ) {
+			if ( strpos( $arr, '\"' ) !== false ) {
+				$arr = stripslashes( $arr );
 			}
 
-			$array = json_decode( $array );
-			$array = self::from_object( $array );
-			$array = self::fix_json_boolean_values( $array );
+			$arr = json_decode( $arr );
+			$arr = self::from_object( $arr );
+			$arr = self::fix_json_boolean_values( $arr );
 		}
 
-		return (array) $array;
+		return (array) $arr;
 	}
 
 	/**
 	 * Ensures proper encoding for strings before json_encode is used.
 	 *
-	 * @param array|string $data
-	 *
-	 * @return mixed|string
+	 * @param array<string, mixed>|string $data
+	 * @return string|false
 	 */
 	public static function safe_json_encode( $data = [] ) {
 		return wp_json_encode( self::make_safe_for_json_encode( $data ) );
 	}
 
 	/**
-	 * json_encode only accepts valid UTF8 characters,  thus we need to properly convert translations and other data to proper utf.
+	 * json_encode only accepts valid UTF8 characters, thus we need to properly convert translations and other data to proper utf.
 	 *
 	 * This function does that recursively.
 	 *
-	 * @param array|string $data
-	 *
-	 * @return array|string
+	 * @param array<string, mixed>|string $data
+	 * @return array<string, mixed>|string
 	 */
 	public static function make_safe_for_json_encode( $data = [] ) {
 		if ( is_scalar( $data ) ) {
@@ -550,9 +572,10 @@ class PUM_Utils_Array {
 	}
 
 	/**
-	 * @param $d
+	 * Recursively convert string encoding to UTF-8.
 	 *
-	 * @return array|string
+	 * @param array<string, mixed>|string $d
+	 * @return array<string, mixed>|string
 	 */
 	public static function utf8_encode_recursive( $d ) {
 		if ( is_array( $d ) ) {
@@ -560,7 +583,7 @@ class PUM_Utils_Array {
 				$d[ $k ] = self::utf8_encode_recursive( $v );
 			}
 		} elseif ( is_string( $d ) ) {
-			return utf8_encode( $d );
+			return mb_convert_encoding( $d, 'UTF-8', 'ISO-8859-1' );
 		}
 
 		return $d;
@@ -568,14 +591,19 @@ class PUM_Utils_Array {
 
 
 	/**
-	 * @param      $value
-	 * @param bool  $encode
+	 * Convert value to JSON attribute if needed.
 	 *
-	 * @return string
+	 * @param mixed $value
+	 * @param bool  $encode
+	 * @return mixed
 	 */
 	public static function maybe_json_attr( $value, $encode = false ) {
 		if ( is_object( $value ) || is_array( $value ) ) {
-			return $encode ? htmlspecialchars( json_encode( $value ) ) : json_encode( $value );
+			$json = wp_json_encode( $value );
+			if ( false === $json ) {
+				return false;
+			}
+			return $encode ? htmlspecialchars( $json ) : $json;
 		}
 
 		return $value;
@@ -584,23 +612,22 @@ class PUM_Utils_Array {
 	/**
 	 * Remaps array keys.
 	 *
-	 * @param array $array       an array values.
-	 * @param array $remap_array an array of $old_key => $new_key values.
-	 *
-	 * @return array
+	 * @param array<string, mixed>  $arr an array values.
+	 * @param array<string, string> $remap_array an array of $old_key => $new_key values.
+	 * @return array<string, mixed>
 	 */
-	public static function remap_keys( $array, $remap_array = [] ) {
+	public static function remap_keys( $arr, $remap_array = [] ) {
 
 		foreach ( $remap_array as $old_key => $new_key ) {
-			$value = isset( $array[ $old_key ] ) ? $array[ $old_key ] : false;
+			$value = isset( $arr[ $old_key ] ) ? $arr[ $old_key ] : false;
 
 			if ( ! empty( $value ) ) {
-				$array[ $new_key ] = $value;
+				$arr[ $new_key ] = $value;
 			}
 
-			unset( $array[ $old_key ] );
+			unset( $arr[ $old_key ] );
 		}
 
-		return $array;
+		return $arr;
 	}
 }

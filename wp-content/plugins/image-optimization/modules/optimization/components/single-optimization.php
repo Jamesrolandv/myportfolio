@@ -11,7 +11,7 @@ use ImageOptimization\Classes\Image\{
 	Image_Status
 };
 use ImageOptimization\Classes\Logger;
-use ImageOptimization\Modules\Oauth\Classes\Exceptions\Quota_Exceeded_Error;
+use ImageOptimization\Classes\Exceptions\Quota_Exceeded_Error;
 use ImageOptimization\Modules\Optimization\Classes\Exceptions\Image_File_Already_Exists_Error;
 use ImageOptimization\Modules\Optimization\Classes\Optimize_Image;
 use Throwable;
@@ -43,10 +43,7 @@ class Single_Optimization {
 		} catch ( Throwable $t ) {
 			Logger::log( Logger::LEVEL_ERROR, 'Optimization error. Reason: ' . $t->getMessage() );
 
-			( new Image_Meta( $image_id ) )
-				->set_status( Image_Status::OPTIMIZATION_FAILED )
-				->set_error_type( Image_Optimization_Error_Type::GENERIC )
-				->save();
+			Retry::maybe_retry_optimization( $image_id );
 		}
 	}
 
@@ -62,6 +59,8 @@ class Single_Optimization {
 			$oi = new Optimize_Image(
 				$image_id,
 				'manual',
+				null,
+				true
 			);
 
 			$oi->optimize();
@@ -78,15 +77,12 @@ class Single_Optimization {
 		} catch ( Throwable $t ) {
 			Logger::log( Logger::LEVEL_ERROR, 'Reoptimizing error. Reason: ' . $t->getMessage() );
 
-			( new Image_Meta( $image_id ) )
-				->set_status( Image_Status::REOPTIMIZING_FAILED )
-				->set_error_type( Image_Optimization_Error_Type::GENERIC )
-				->save();
+			Retry::maybe_retry_optimization( $image_id );
 		}
 	}
 
 	public function __construct() {
-		add_action( Async_Operation_Hook::OPTIMIZE_SINGLE, [ $this, 'optimize_single_image' ] );
+		add_action( Async_Operation_Hook::OPTIMIZE_SINGLE, [ $this, 'optimize_single_image' ], 3 );
 		add_action( Async_Operation_Hook::REOPTIMIZE_SINGLE, [ $this, 'reoptimize_single_image' ] );
 	}
 }
