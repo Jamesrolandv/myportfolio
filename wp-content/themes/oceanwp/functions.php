@@ -53,6 +53,9 @@ final class OCEANWP_Theme_Class {
 		// Setup theme => add_theme_support, register_nav_menus, load_theme_textdomain, etc.
 		add_action( 'after_setup_theme', array( 'OCEANWP_Theme_Class', 'theme_setup' ), 10 );
 
+		// Fires after the theme is switched.
+		add_action( 'switch_theme', array( 'OCEANWP_Theme_Class', 'theme_switch' ) );
+
 		// register sidebar widget areas.
 		add_action( 'widgets_init', array( 'OCEANWP_Theme_Class', 'register_sidebars' ) );
 
@@ -94,7 +97,7 @@ final class OCEANWP_Theme_Class {
 			add_filter( 'wp_headers', array( 'OCEANWP_Theme_Class', 'x_ua_compatible_headers' ) );
 
 			// Outputs custom CSS to the head.
-			add_action( 'wp_head', array( 'OCEANWP_Theme_Class', 'custom_css' ), 9999 );
+			add_action( 'wp_head', array( 'OCEANWP_Theme_Class', 'custom_css' ), 999 );
 
 			// Minify the WP custom CSS because WordPress doesn't do it by default.
 			add_filter( 'wp_get_custom_css', array( 'OCEANWP_Theme_Class', 'minify_custom_css' ) );
@@ -161,6 +164,9 @@ final class OCEANWP_Theme_Class {
 
 		// Check if plugins are active.
 		define( 'OCEAN_EXTRA_ACTIVE', class_exists( 'Ocean_Extra' ) );
+		define( 'OCEANWP_STICKY_HEADER_ACTIVE', class_exists( 'Ocean_Sticky_Header' ) );
+		define( 'OCEANWP_STICKY_FOOTER_ACTIVE', class_exists( 'Ocean_Sticky_Footer' ) );
+		define( 'OCEANWP_ECOMM_ACTIVE', class_exists( 'Ocean_eCommerce' ) );
 		define( 'OCEANWP_ELEMENTOR_ACTIVE', class_exists( 'Elementor\Plugin' ) );
 		define( 'OCEANWP_BEAVER_BUILDER_ACTIVE', class_exists( 'FLBuilder' ) );
 		define( 'OCEANWP_WOOCOMMERCE_ACTIVE', class_exists( 'WooCommerce' ) );
@@ -185,7 +191,7 @@ final class OCEANWP_Theme_Class {
 		require_once $dir . 'oceanwp-svg.php';
 		require_once $dir . 'oceanwp-theme-icons.php';
 		require_once $dir . 'template-helpers.php';
-		require_once $dir . 'customizer/controls/typography/webfonts.php';
+		require_once $dir . 'customizer/webfonts.php';
 		require_once $dir . 'walker/init.php';
 		require_once $dir . 'walker/menu-walker.php';
 		require_once $dir . 'third/class-gutenberg.php';
@@ -281,7 +287,6 @@ final class OCEANWP_Theme_Class {
 		require_once OCEANWP_INC_DIR . 'breadcrumbs.php';
 
 		// Customizer class.
-		require_once OCEANWP_INC_DIR . 'customizer/library/customizer-custom-controls/functions.php';
 		require_once OCEANWP_INC_DIR . 'customizer/customizer.php';
 
 	}
@@ -338,6 +343,7 @@ final class OCEANWP_Theme_Class {
 					'height'      => 1200,
 					'flex-height' => true,
 					'video'       => true,
+					'video-active-callback' => '__return_true'
 				)
 			)
 		);
@@ -387,6 +393,39 @@ final class OCEANWP_Theme_Class {
 		// Declare support for selective refreshing of widgets.
 		add_theme_support( 'customize-selective-refresh-widgets' );
 
+		// Theme log.
+		self::oceanwp_theme_log();
+	}
+
+	/**
+	 * Theme Switch
+	 *
+	 * @since   4.0.7
+	 */
+	public static function theme_switch() {
+		self::oceanwp_theme_log();
+	}
+
+	/**
+	 * Log the installed version
+	 *
+	 * @since 4.0.7
+	 */
+	public static function oceanwp_theme_log() {
+
+		$parent_theme  = wp_get_theme()->parent();
+		$current_theme = wp_get_theme();
+		$theme_version = '';
+
+		if ( ! empty( $parent_theme) ) {
+			$theme_version = $parent_theme->get('Version');
+		} else {
+			$theme_version = $current_theme->get('Version');
+		}
+
+		if ( ! get_option( 'oceanwp_theme_installed_version')) {
+			update_option( 'oceanwp_theme_installed_version', $theme_version );
+		}
 	}
 
 	/**
@@ -446,7 +485,7 @@ final class OCEANWP_Theme_Class {
 
 		// Enqueue font awesome style.
 		if ( get_theme_mod( 'ocean_performance_fontawesome', 'enabled' ) === 'enabled' ) {
-			wp_enqueue_style( 'font-awesome', OCEANWP_THEME_URI . '/assets/fonts/fontawesome/css/all.min.css', false, '6.4.2' );
+			wp_enqueue_style( 'font-awesome', OCEANWP_THEME_URI . '/assets/fonts/fontawesome/css/all.min.css', false, '6.7.2' );
 		}
 
 		// Enqueue simple line icons style.
@@ -643,6 +682,11 @@ final class OCEANWP_Theme_Class {
 			wp_enqueue_script( 'oceanwp-infinite-scroll', $dir . 'ow-infinite-scroll.min.js', $main_script_dependencies, $theme_version, true );
 		}
 
+		// Load more pagination script
+		if ( 'load_more' === get_theme_mod( 'ocean_blog_pagination_style', 'standard' ) || 'load_more' === get_theme_mod( 'ocean_woo_pagination_style', 'standard' ) ) {
+			wp_enqueue_script( 'oceanwp-load-more', $dir . 'ow-load-more.min.js', $main_script_dependencies, $theme_version, true );
+		}
+
 		// WooCommerce scripts.
 		if ( OCEANWP_WOOCOMMERCE_ACTIVE
 		&& 'yes' !== get_theme_mod( 'ocean_woo_remove_custom_features', 'no' ) ) {
@@ -682,6 +726,7 @@ final class OCEANWP_Theme_Class {
 			'verticalHeaderTarget'  => $vh_target,
 			'customScrollOffset'    => $scroll_offset,
 			'customSelects'         => '.woocommerce-ordering .orderby, #dropdown_product_cat, .widget_categories select, .widget_archive select, .single-product .variations_form .variations select',
+			'loadMoreLoadingText'   => esc_html__('Loading...', 'oceanwp'),
 		);
 
 		// WooCart.
@@ -1134,6 +1179,7 @@ if ( ! function_exists( 'owp_fs' ) ) {
 							'contact' => false,
 							'support' => false,
 						),
+						'anonymous_mode' => true,
 						'bundle_license_auto_activation' => true,
 						'navigation'                     => 'menu',
 						'is_org_compliant'               => true,
@@ -1154,3 +1200,4 @@ if ( ! function_exists( 'owp_fs' ) ) {
 // endregion
 
 new OCEANWP_Theme_Class();
+

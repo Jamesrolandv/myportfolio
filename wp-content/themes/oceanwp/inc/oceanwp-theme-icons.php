@@ -530,8 +530,8 @@ if ( ! function_exists( 'oceanwp_theme_icons' ) ) {
 
 			// Social icons.
 			'twitter'                => array(
-				'sili' => 'fab fa-twitter',
-				'fai'  => 'fab fa-x-twitter',
+				'sili' => 'fa-brands fa-x-twitter',
+				'fai'  => 'fa-brands fa-x-twitter',
 				'svg'  => 'twitter',
 			),
 			'facebook'               => array(
@@ -688,6 +688,11 @@ if ( ! function_exists( 'oceanwp_theme_icons' ) ) {
 				'sili' => 'fa-brands fa-whatsapp',
 				'fai'  => 'fa-brands fa-whatsapp',
 				'svg'  => 'whatsapp',
+			),
+			'bluesky'                     => array(
+				'sili' => 'fa-brands fa-bluesky',
+				'fai'  => 'fa-brands fa-bluesky',
+				'svg'  => 'bluesky',
 			)
 		);
 
@@ -836,7 +841,7 @@ if ( ! function_exists( 'oceanwp_print_icon' ) ) {
 		 * Print or return icon
 		 */
 		if ( $echo ) {
-			echo $icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $icon;
 		} else {
 			return $icon;
 		}
@@ -860,14 +865,19 @@ if ( ! function_exists( 'oceanwp_icon' ) ) {
 
 	function oceanwp_icon( $icon, $echo = true, $class = '', $title = '', $desc = '', $aria_hidden = true, $fallback = false ) {
 
+		$icon  = sanitize_html_class( $icon );
+		$class = sanitize_html_class( $class );
+		$title = sanitize_text_field( $title );
+		$desc  = sanitize_text_field( $desc );
+
 		$icon = oceanwp_print_icon(
 			array(
 				'icon'        => $icon,
 				'class'       => $class,
 				'title'       => $title,
 				'desc'        => $desc,
-				'area_hidden' => $aria_hidden,
-				'fallback'    => $fallback,
+				'area_hidden' => (bool) $aria_hidden,
+				'fallback'    => (bool) $fallback,
 			),
 			false
 		);
@@ -878,7 +888,7 @@ if ( ! function_exists( 'oceanwp_icon' ) ) {
 		 * Print or return icon
 		 */
 		if ( $echo ) {
-			echo $icon; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $icon;
 		} else {
 			return $icon;
 		}

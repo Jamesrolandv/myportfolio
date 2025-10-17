@@ -34,6 +34,11 @@
                 }
             }
 
+            > span.opl-logout-link {
+                line-height: 74px;
+                letter-spacing: 0.6px;
+            }
+
             &.btn > a {
                 background-color: transparent !important;
             }
@@ -67,7 +72,8 @@
 }
 
 // If social
-.has-social #site-navigation-wrap {
+.has-social #site-navigation-wrap,
+.has-after-header-content #site-navigation-wrap {
     right: 0;
 }
 

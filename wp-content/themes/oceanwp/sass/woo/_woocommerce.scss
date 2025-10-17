@@ -607,6 +607,50 @@
     .form-row::after {
       clear: both;
     }
+
+    .password-input {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			position: relative;
+
+			input[type="password"] {
+				padding-right: 2.5rem;
+			}
+
+			/* Hide the Edge "reveal password" native button */
+			input::-ms-reveal {
+				display: none;
+			}
+		}
+
+		.show-password-input {
+			position: absolute;
+			right: 0.7em;
+      background: none;
+      border: unset;
+      margin: 0;
+      padding: 0;
+      cursor: pointer;
+		}
+
+		.show-password-input::after {
+      font-family: "Font Awesome 6 Free";
+      speak: never;
+      font-weight: normal;
+      font-variant: normal;
+      text-transform: none;
+      line-height: 1;
+      -webkit-font-smoothing: antialiased;
+      margin-left: 0.618em;
+      content: "\f06e";
+      text-decoration: none;
+		}
+
+		.show-password-input.display-password::after {
+			color: #585858;
+		}
+
     &.login .lost_password {
       margin: 0;
     }
@@ -1913,7 +1957,7 @@
     margin-left: 0;
   }
   button {
-    width: 100%;
+    width: auto;
     padding-top: 16px;
     padding-bottom: 16px;
   }
@@ -3139,9 +3183,9 @@ del .amount {
   }
 }
 
-.woocommerce .owp-thumbs-layout-vertical span.onsale {
-  left: 15% !important;
-}
+// .woocommerce .owp-thumbs-layout-vertical span.onsale {
+//   left: 15% !important;
+// }
 
 /* Sales Badge Responsive */
 
@@ -3540,6 +3584,12 @@ form.checkout {
     @include font-awesome();
     margin-right: 10px;
     content: "\f05a";
+  }
+}
+
+.vertical-header-style {
+  .woocommerce-store-notice.demo_store {
+    z-index: 9999;
   }
 }
 

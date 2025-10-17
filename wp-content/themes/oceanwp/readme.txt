@@ -1,8 +1,8 @@
 == OceanWP ==
 Contributors: oceanwp
-Tested up to: 6.5
-Stable tag: 3.5.5
-Requires PHP: 7.2
+Tested up to: 6.8.2
+Stable tag: 4.1.3
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,7 +54,7 @@ Source: https://stocksnap.io/photo/fireworks-celebration-R4GSFACUEC is by Travel
 
 == Copyright ==
 
-OceanWP WordPress Theme, Copyright 2021 OceanWP.org
+OceanWP WordPress Theme, Copyright 2016-2025 OceanWP LLC
 OceanWP is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify
@@ -75,7 +75,7 @@ Source: https://github.com/aFarkas/html5shiv
 
 Flickity, Copyright (c) 2015-2021 Metafizzy
 License: GPLv3 - https://www.gnu.org/licenses/gpl-3.0.html
-Source: https://flickity.metafizzy.com
+Source: https://flickity.metafizzy.co
 
 Perfect-Scrollbar, Copyright 2020 Hyunje Jun, MDBootstrap and Contributors
 License: MIT - https://opensource.org/licenses/MIT

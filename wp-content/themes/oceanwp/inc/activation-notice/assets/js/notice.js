@@ -7,10 +7,10 @@ jQuery(document).ready(function ($) {
 
 		init: function () {
 
-			if ($('.owp-ocean-extra-plugin-inner').length) {
+			if ($('.notice-ocean-onboarding .owp-ocean-extra-plugin-inner').length) {
 				this.render_actions();
-				$(document).on('click', '.owp-ocean-extra-plugin-inner .notice-dismiss', this.dismiss_notice);
-				$(document).on('click', '.owp-ocean-extra-plugin-inner .notice-actions button', this.main_action);
+				$(document).on('click', '.notice-ocean-onboarding .owp-ocean-extra-plugin-inner .notice-dismiss', this.dismiss_notice);
+				$(document).on('click', '.notice-ocean-onboarding .owp-ocean-extra-plugin-inner .notice-actions button', this.main_action);
 			}
 
 		},
@@ -18,13 +18,14 @@ jQuery(document).ready(function ($) {
 		render_actions: function () {
 			$.ajax({
 				type: 'post',
-				url: ajaxurl,
+				url: owp_notification_i18n.ajax_url,
 				data: {
-					action: 'oceanwp_check_notice_actions'
+					action: 'oceanwp_check_notice_actions',
+					_ajax_nonce: owp_notification_i18n.nonce
 				},
 				success: function (response) {
 					if (response.data != '') {
-						$('.owp-notification-content').append(response.data);
+						$('.notice-ocean-onboarding .owp-notification-content-wrap').append(response.data);
 					}
 				},
 				complete: function () {
@@ -34,12 +35,13 @@ jQuery(document).ready(function ($) {
 
 		dismiss_notice: function (evt) {
 
-			$(evt.target).closest('.notice-ocean-extra-plugin').remove();
+			$(evt.target).closest('.notice-ocean-onboarding.notice-ocean-extra-plugin').remove();
 
-			$.ajax(ajaxurl, {
+			$.ajax(owp_notification_i18n.ajax_url, {
 				type: 'POST',
 				data: {
 					action: 'oceanwp_dismissed_notice',
+					_ajax_nonce: owp_notification_i18n.nonce
 				},
 			})
 
@@ -55,20 +57,60 @@ jQuery(document).ready(function ($) {
 				$(evt.target).text(owp_notification_i18n.activating);
 			} else if ($el.data('action') == 'install_activate') {
 				$(evt.target).text(owp_notification_i18n.installing_activating);
+			} else if ($el.data('action') == 'install_activate_setup_wizard') {
+				$(evt.target).text(owp_notification_i18n.installing_activating);
+			}
+
+			if (
+				$el.data('action') === 'activate' ||
+				$el.data('action') === 'install_activate' ||
+				$el.data('action') === 'skip_only'
+			) {
+				$.ajax(owp_notification_i18n.ajax_url, {
+					type: 'POST',
+					data: {
+						action: 'oceanwp_dismissed_notice',
+						action_type: $el.data('action'),
+						_ajax_nonce: owp_notification_i18n.nonce
+					},
+				});
 			}
 
 			$(evt.target).append('<i className="dashicons dashicons-update" />');
 
 			$.ajax({
 				type: 'post',
-				url: ajaxurl,
+				url: owp_notification_i18n.ajax_url,
 				data: {
-					action: 'oceanwp_notice_button_click'
+					action: 'oceanwp_notice_button_click',
+					_ajax_nonce: owp_notification_i18n.nonce
 				},
 				success: function (response) {
 					if (response.success) {
 						if (response.data.status === 'active') {
-							location.assign(response.data.pluginUrl)
+
+							if ($el.data('action') == 'install_activate_setup_wizard' || $el.data('action') == 'activate_setup_wizard') {
+
+								const newToken = Math.random().toString(36).slice(2, 11);
+
+								const currentState = {};
+
+								localStorage.setItem('wizardState', JSON.stringify({
+									// ...currentState,
+									isOpen: true,
+									wizardToken: newToken,
+								}));
+
+								const newUrl = new URL(response.data.pluginUrl, window.location.origin);
+								newUrl.searchParams.set("onboarding", "active");
+								newUrl.searchParams.set("_uid", newToken);
+
+								window.history.replaceState(null, "", newUrl.toString());
+
+								location.assign(newUrl.toString());
+							} else {
+								location.assign(response.data.pluginUrl)
+							}
 						}
 					}
 
